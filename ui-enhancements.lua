@@ -13,45 +13,32 @@ return function(mod)
 
   -- 1. Mod Options for UI Customization
   mod.options:define({
-    {
-      key = "show_party_ability_menu",
-      type = "toggle",
-      label = "SHOW ABILITY IN PARTY MENU",
-      default = true
-    },
-    {
-      key = "show_battle_weather_hud",
-      type = "toggle",
-      label = "SHOW BATTLE WEATHER HUD",
-      default = true
-    },
-    {
-      key = "show_ability_popups",
-      type = "toggle",
-      label = "SHOW BATTLE ABILITY LOGS",
-      default = true
-    }
+    { key = "show_party_ability_menu", type = "toggle", label = "SHOW ABILITY IN PARTY MENU", default = true },
+    { key = "show_battle_weather_hud", type = "toggle", label = "SHOW BATTLE WEATHER HUD", default = true },
+    { key = "show_ability_popups", type = "toggle", label = "SHOW BATTLE ABILITY LOGS", default = true }
   })
 
+  local function getHeldItem(mon)
+    if not mon then return nil end
+    return mon.heldItem or mon.item or mon.held_item
+  end
+
   -- =========================================================================
-  -- 2. Party Menu Submenu Hook (Composable with Transparent & Custom UI Mods)
+  -- 2. Party Menu Submenu Hook (Combines Ability & Held Item Injection)
   -- =========================================================================
   mod.hooks:wrap("ui.party.submenu", function(next, game, items, mon, ctx)
     items = next(game, items, mon, ctx) or items
-    if not items or not mod.options:get("show_party_ability_menu") then
-      return items
-    end
+    if not items or not mon then return items end
 
-    if mon then
+    -- INJECT ABILITY BUTTON
+    if mod.options:get("show_party_ability_menu") then
       local rawAbility = mod.getMonAbility and mod.getMonAbility(mon)
-      local hasAbilityVal = rawAbility and rawAbility ~= "" and rawAbility:upper() ~= "NONE" and rawAbility:upper() ~= "N/A"
+      local hasAbilityVal = rawAbility and rawAbility ~= "" and rawAbility:upper() ~= "NONE"
       local abilityName = hasAbilityVal and rawAbility:upper() or "N/A"
       local desc = hasAbilityVal and ((mod.ABILITY_DESCRIPTIONS and mod.ABILITY_DESCRIPTIONS[abilityName]) or ("Special Ability: " .. abilityName)) or "This Pokémon has no special ability."
 
-      local abilityLabel = hasAbilityVal and ("ABILITY: " .. abilityName) or "ABILITY: N/A"
-
       local abilityItem = {
-        label = abilityLabel,
+        label = "ABILITY: " .. (hasAbilityVal and abilityName:sub(1, 2) or "N/A"),
         onSelect = function()
           if mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
             mod.ui.TextBox.show(game or (ctx and ctx.game), {
@@ -69,28 +56,42 @@ return function(mod)
       end
     end
 
+    -- INJECT HELD ITEM BUTTON
+    local heldItemOption = {
+      label = "HELD ITEM",
+      onSelect = function()
+        local currentGame = game or (ctx and ctx.game)
+        if currentGame and currentGame.stack and currentGame.stack.push and mod.content.screens then
+          -- Push the custom action screen defined below[cite: 5, 10]
+          local screen = mod.content.screens:get("HeldItemActionScreen", currentGame, mon)
+          if screen then
+            currentGame.stack:push(screen)
+          end
+        end
+      end
+    }
+
+    if mod.ui and mod.ui.insertBefore then
+      mod.ui.insertBefore(items, "CANCEL", heldItemOption)
+    else
+      table.insert(items, heldItemOption)
+    end
+
     return items
   end, 100)
 
   -- =========================================================================
-  -- 3. Battle Overlay Hook (Compatible with Voxel Viewports & Transparent HUDs)
+  -- 3. Battle Overlay Hook (Compatible with Voxel Viewports)
   -- =========================================================================
   mod.hooks:wrap("battle.overlay", function(next, battle)
     next(battle)
-
-    if not battle or not mod.options:get("show_battle_weather_hud") then
-      return
-    end
-
-    if battle.status_hud_visible == false or battle.bottom_ui_visible == false then
-      return
-    end
+    if not battle or not mod.options:get("show_battle_weather_hud") then return end
+    if battle.status_hud_visible == false or battle.bottom_ui_visible == false then return end
 
     local weather = battle.weather or "CLEAR"
     if weather ~= "CLEAR" then
       local turns = battle.weather_turns or 0
       local weatherText = weather .. " [" .. tostring(turns) .. "t]"
-      
       if mod.ui and mod.ui.Font and mod.ui.Font.draw then
         mod.ui.Font.draw(weatherText, 108, 4)
       end
@@ -98,31 +99,24 @@ return function(mod)
   end, 100)
 
   -- =========================================================================
-  -- 4. Dynamic Pokémon Sprite Selection Hook (ROM Sprites vs Mod Sprites)
+  -- 4. Dynamic Pokémon Sprite Selection Hook
   -- =========================================================================
   mod.hooks:wrap("pokemon.sprite", function(next, path, ctx)
     local spriteSource = mod.options and mod.options:get("sprite_source") or "mod"
-
-    -- If user chose Vanilla ROM Sprites:
     if spriteSource == "rom" then
       if ctx and ctx.species then
         local spLower = ctx.species:lower()
         local side = ctx.side or "front"
         local romPath = (side == "back") and ("battle/back/" .. spLower .. "b.png") or ("battle/front/" .. spLower .. ".png")
-
-        if love and love.filesystem and love.filesystem.getInfo then
-          if love.filesystem.getInfo("assets/generated/" .. romPath) or love.filesystem.getInfo(romPath) then
-            ctx.trueColor = false
-            return romPath
-          end
+        if love and love.filesystem and love.filesystem.getInfo and (love.filesystem.getInfo("assets/generated/" .. romPath) or love.filesystem.getInfo(romPath)) then
+          ctx.trueColor = false
+          return romPath
         end
       end
       local baseRes = next(path, ctx)
-      if not baseRes or baseRes == "" then return "assets/sprites/000.png" end
-      return baseRes
+      return (not baseRes or baseRes == "") and "assets/sprites/000.png" or baseRes
     end
 
-    -- If user chose Mod Sprites (GSC Essentials V1.3.2):
     if ctx and ctx.species then
       local speciesId = ctx.species:upper()
       local dexNum = nil
@@ -130,59 +124,92 @@ return function(mod)
         local rec = mod.content.pokemon:get(speciesId)
         if rec and rec.dex then dexNum = rec.dex end
       end
-
       if dexNum then
         local numStr = string.format("%03d", dexNum)
         local isShiny = (ctx.shiny == true) or (ctx.mon and ctx.mon.dvs and mod.isMonShiny and mod.isMonShiny(ctx.mon.dvs))
-        local side = ctx.side or "front"
-
-        local suffix = ""
-        if side == "back" then
-          suffix = isShiny and "sb" or "b"
-        else
-          suffix = isShiny and "s" or ""
-        end
-
+        local suffix = (ctx.side == "back") and (isShiny and "sb" or "b") or (isShiny and "s" or "")
         local filename = numStr .. suffix .. ".png"
-        local candidatePaths = {
-          "assets/sprites/front/" .. filename,
-          "assets/sprites/back/" .. filename,
-          "assets/sprites/" .. filename,
-          "Graphics/Battlers/" .. filename,
-          "Graphics/Pokemon/" .. filename,
-          "assets/" .. filename
-        }
+        local candidatePaths = { "assets/sprites/front/" .. filename, "assets/sprites/back/" .. filename, "assets/sprites/" .. filename }
 
         for _, cPath in ipairs(candidatePaths) do
-          if love and love.filesystem and love.filesystem.getInfo then
-            if love.filesystem.getInfo(cPath) then
-              ctx.trueColor = true
-              if mod.assets and mod.assets.path then
-                return mod.assets:path(cPath)
-              end
-              return cPath
-            end
+          if love and love.filesystem and love.filesystem.getInfo and love.filesystem.getInfo(cPath) then
+            ctx.trueColor = true
+            return (mod.assets and mod.assets.path) and mod.assets:path(cPath) or cPath
           end
         end
       end
     end
-
     local resolved = next(path, ctx)
-    if not resolved or resolved == "" then
-      return "assets/sprites/000.png"
-    end
-    return resolved
+    return (not resolved or resolved == "") and "assets/sprites/000.png" or resolved
   end, 100)
 
   -- =========================================================================
-  -- 5. Full Party Ability Screen (isOpaque = false for Voxel/3D Pass-Through)
+  -- 5. Custom UI Screens (Registered to Engine Stack)[cite: 5, 10]
   -- =========================================================================
   if mod.content and mod.content.screens then
+    
+    -- Held Item Action Menu Screen
+    mod.content.screens:register("HeldItemActionScreen", {
+      new = function(game, mon)
+        local state = {
+          isOpaque = false,
+          cursor = 1,
+          mon = mon,
+          options = { "GIVE", "TAKE", "BACK" }
+        }
+        function state:update(dt)
+          if not game or not game.input then return end
+          
+          if game.input:wasPressed("up") then
+            self.cursor = self.cursor - 1
+            if self.cursor < 1 then self.cursor = #self.options end
+          elseif game.input:wasPressed("down") then
+            self.cursor = self.cursor + 1
+            if self.cursor > #self.options then self.cursor = 1 end
+          elseif game.input:wasPressed("b") then
+            if game.stack and game.stack.pop then game.stack:pop() end
+          elseif game.input:wasPressed("a") then
+            local sel = self.options[self.cursor]
+            
+            if sel == "BACK" then
+              if game.stack and game.stack.pop then game.stack:pop() end
+              
+            elseif sel == "TAKE" then
+              if self.mon then
+                self.mon.heldItem = nil
+                self.mon.item = nil
+                self.mon.held_item = nil
+              end
+              mod.log:info("Took held item from " .. tostring(self.mon and self.mon.name or "Pokémon"))
+              if game.stack and game.stack.pop then game.stack:pop() end
+              
+            elseif sel == "GIVE" then
+              mod.log:info("Opening item bag for " .. tostring(self.mon and self.mon.name or "Pokémon"))
+              if game.stack and game.stack.pop then game.stack:pop() end
+              -- Attempt to push the native item bag list menu
+              pcall(function() game:pushScreen("items", { selectMode = true }) end)
+            end
+          end
+        end
+        function state:draw()
+          if mod.ui and mod.ui.Font then
+            -- Renders the blue action box with white borders over the party menu
+            mod.ui.Font.drawBox(10, 8, 19, 16)
+            mod.ui.Font.draw("ITEM ACTION", 11 * 8, 9 * 8)
+            for i, opt in ipairs(self.options) do
+              local prefix = (i == self.cursor) and "▶" or " "
+              mod.ui.Font.draw(prefix .. opt, 11 * 8, (10 + i * 2) * 8)
+            end
+          end
+        end
+        return state
+      end
+    })
+
+    -- Party Abilities Screen
     mod.content.screens:register("PartyAbilitiesScreen", {
       new = function(game)
-        local state = {
-          isOpaque = false
-        }
+        local state = { isOpaque = false }
         function state:update(dt)
           if game and game.input and (game.input:wasPressed("b") or game.input:wasPressed("a")) then
             if game.stack and game.stack.pop then game.stack:pop() end
