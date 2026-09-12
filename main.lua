@@ -108,93 +108,50 @@ return function(mod)
 
   mod.loadModule = loadModule
 
-  -- Normalize Pokémon data structures to support all Gen1Recomp API key aliases for types, baseStats and learnsets
+  -- Normalize Pokémon data structures to support all Gen1Recomp API key requirements
+  -- without triggering strict schema typo validation.
   local function normalizePokemonData(data)
     if not data or type(data) ~= "table" then return data end
 
-    -- Typing normalization (types, type1, type2, type)
-    local tList = data.types or data.type
-    if not tList and (data.type1 or data.type2) then
-      tList = {}
-      if data.type1 then table.insert(tList, data.type1) end
-      if data.type2 then table.insert(tList, data.type2) end
-    end
-
-    if tList then
-      if type(tList) == "string" then
-        tList = { tList }
-      end
-      data.types = tList
-      data.type = tList
-      if tList[1] then data.type1 = tList[1] end
-      if tList[2] then data.type2 = tList[2] else data.type2 = tList[1] end
-    end
-
-    -- BaseStats normalization (Gen 1 Special vs Gen 2 SpecialAttack / SpecialDefense / spAtk / spDef)
+    -- 1. BaseStats normalization:
+    -- Gen1Recomp expects 'special' (Gen 1) or 'specialAttack' / 'specialDefense' (Gen 2 shape).
+    -- Passing 'spAtk' or 'spDef' directly triggers a schema validation load error.
     if data.baseStats and type(data.baseStats) == "table" then
       local bs = data.baseStats
-      local spec = bs.special or bs.spAtk or bs.specialAttack or 50
-      bs.special = spec
-      bs.spAtk = bs.spAtk or bs.specialAttack or spec
-      bs.spDef = bs.spDef or bs.specialDefense or spec
-      bs.specialAttack = bs.specialAttack or bs.spAtk
-      bs.specialDefense = bs.specialDefense or bs.spDef
+      if bs.spAtk then
+        bs.specialAttack = bs.spAtk
+        bs.spAtk = nil
+      end
+      if bs.spDef then
+        bs.specialDefense = bs.spDef
+        bs.spDef = nil
+      end
     end
 
-    -- Learnset normalization (learnset, moves, levelUpMoves, level_up_moves, levelMoves, level1Moves)
-    local lset = data.learnset or data.moves or data.levelUpMoves or data.level_up_moves or data.levelMoves
-    if lset and type(lset) == "table" then
-      local normalizedLset = {}
-      local lvl1Moves = data.level1Moves or {}
-      for k, entry in pairs(lset) do
+    -- 2. Learnset Array Cleanup:
+    -- The schema strictly requires exactly { level = X, move = "Y" }. 
+    if data.learnset and type(data.learnset) == "table" then
+      for _, entry in pairs(data.learnset) do
         if type(entry) == "table" then
-          local lvl = entry.level or entry.lvl
-          local mv = entry.move or entry.id
-          if not lvl or not mv then
-            for _, v in pairs(entry) do
-              if type(v) == "number" then lvl = v end
-              if type(v) == "string" then mv = v end
-            end
-          end
-          if not lvl and type(k) == "number" then lvl = k end
-          lvl = lvl or 1
-          if mv then
-            table.insert(normalizedLset, {
-              level = lvl,
-              move = mv,
-              lvl = lvl,
-              id = mv,
-              [1] = lvl,
-              [2] = mv
-            })
-            if lvl == 1 then
-              table.insert(lvl1Moves, mv)
-            end
-          end
-        elseif type(k) == "number" and type(entry) == "string" then
-          table.insert(normalizedLset, {
-            level = k,
-            move = entry,
-            lvl = k,
-            id = entry,
-            [1] = k,
-            [2] = entry
-          })
-          if k == 1 then
-            table.insert(lvl1Moves, entry)
-          end
+          -- Remove extra inner keys to prevent shape validation failures
+          entry.lvl = nil
+          entry.id = nil
+          entry[1] = nil
+          entry[2] = nil
         end
       end
-
-      table.sort(normalizedLset, function(a, b) return (a.level or 0) < (b.level or 0) end)
-
-      data.learnset = normalizedLset
-      data.moves = normalizedLset
-      data.levelUpMoves = normalizedLset
-      data.level_up_moves = normalizedLset
-      data.levelMoves = normalizedLset
-      data.level1Moves = lvl1Moves
     end
+
+    -- 3. Remove Schema-Violating Aliases:
+    -- The engine strictly rejects top-level keys that look like typo variants of real fields.
+    -- We must ensure the interceptor does not inject these back in.
+    data.type = nil
+    data.type1 = nil
+    data.type2 = nil
+    data.moves = nil
+    data.levelUpMoves = nil
+    data.level_up_moves = nil
+    data.levelMoves = nil
 
     return data
   end
