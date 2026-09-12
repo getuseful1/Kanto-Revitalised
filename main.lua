@@ -13,38 +13,26 @@ return function(mod)
     { key = "sprite_source", type = "choice", label = "POKEMON SPRITE SOURCE", options = { { label = "Mod Sprites", value = "mod" }, { label = "ROM Sprites", value = "rom" } }, default = "mod" }
   })
 
-  -- 1. PREVENT DANGLING REFERENCE CASCADE
-  -- Register modern types so new moves and species typings do not fail validation.
-  if mod.content and mod.content.type_chart then
-    -- Using patch ensures we don't crash if another mod already registered them
-    pcall(function() mod.content.type_chart:register("DARK", { name = "DARK" }) end)
-    pcall(function() mod.content.type_chart:register("STEEL", { name = "STEEL" }) end)
-    pcall(function() mod.content.type_chart:register("FAIRY", { name = "FAIRY" }) end)
-  end
-
-  -- Global table to store abilities so they aren't erased by the engine schema
+  -- Global tables to safely store custom data outside the strict engine schema[cite: 1, 4]
   mod.CUSTOM_ABILITIES = mod.CUSTOM_ABILITIES or {}
+  mod.MOVE_DESCRIPTIONS = mod.MOVE_DESCRIPTIONS or {}
 
-  -- Non-destructive check for Gen 2 routing[cite: 1]
+  -- Determine Generation Routing[cite: 1, 4]
   local isGen2 = false
-  local checkBulba = pcall(function() return mod.content.pokemon:get("BULBASAUR").levelMoves end)
-  if checkBulba then isGen2 = true end
+  pcall(function() if mod.content.pokemon:get("BULBASAUR").levelMoves then isGen2 = true end end)
 
-  -- 2. SCHEMA NORMALIZER
+  -- POKEMON SCHEMA NORMALIZER
   local function normalizePokemonData(id, data)
     if type(data) ~= "table" then return data end
     local out = {}
 
-    -- Strip custom and alias keys that trigger typo validation[cite: 1]
     for k, v in pairs(data) do
       if k ~= "abilities" and k ~= "spAtk" and k ~= "spDef" and k ~= "type" and k ~= "moves" and k ~= "level1Moves" and k ~= "learnset" and k ~= "levelMoves" then
         out[k] = v
       end
     end
 
-    if data.abilities then
-      mod.CUSTOM_ABILITIES[id] = data.abilities
-    end
+    if data.abilities then mod.CUSTOM_ABILITIES[id] = data.abilities end
 
     if data.baseStats and type(data.baseStats) == "table" then
       local bs = {}
@@ -53,20 +41,17 @@ return function(mod)
           bs[k] = v
         end
       end
-      
       local spec = data.baseStats.special or data.baseStats.spAtk or data.baseStats.specialAttack or 50
       local spDef = data.baseStats.spDef or data.baseStats.specialDefense or spec
 
       if isGen2 then
-        bs.specialAttack = spec
-        bs.specialDefense = spDef
+        bs.specialAttack = spec; bs.specialDefense = spDef
       else
         bs.special = spec
       end
       out.baseStats = bs
     end
 
-    -- Split learnsets correctly for Gen 1 (requires level1Moves) vs Gen 2[cite: 7]
     local rawLearnset = data.learnset or data.levelMoves
     if rawLearnset and type(rawLearnset) == "table" then
       local cleanLearnset = {}
@@ -80,11 +65,7 @@ return function(mod)
             if isGen2 then
               table.insert(cleanLearnset, { level = lvl, move = mv })
             else
-              if lvl == 1 then
-                table.insert(lvl1Moves, mv)
-              else
-                table.insert(cleanLearnset, { level = lvl, move = mv })
-              end
+              if lvl == 1 then table.insert(lvl1Moves, mv) else table.insert(cleanLearnset, { level = lvl, move = mv }) end
             end
           end
         end
@@ -97,30 +78,49 @@ return function(mod)
         if #lvl1Moves > 0 then out.level1Moves = lvl1Moves end
       end
     end
-
     return out
   end
 
-  -- Intercept Engine Registry calls
-  if mod.content and mod.content.pokemon then
-    local origPatch = mod.content.pokemon.patch
-    mod.content.pokemon.patch = function(self, id, partial, ...)
-      if type(partial) == "table" then
-        partial = normalizePokemonData(id, partial)
+  -- MOVES SCHEMA NORMALIZER
+  local function normalizeMoveData(id, data)
+    if type(data) ~= "table" then return data end
+    local out = {}
+    for k, v in pairs(data) do
+      if k == "description" then
+        mod.MOVE_DESCRIPTIONS[id] = v
+      elseif k ~= "effect_data" then
+        out[k] = v
       end
-      return origPatch(self, id, partial, ...)
+    end
+    return out
+  end
+
+  -- INTERCEPT REGISTRIES
+  if mod.content then
+    if mod.content.pokemon then
+      local origPokePatch = mod.content.pokemon.patch
+      mod.content.pokemon.patch = function(self, id, partial, ...)
+        return origPokePatch(self, id, type(partial) == "table" and normalizePokemonData(id, partial) or partial, ...)
+      end
+      local origPokeReg = mod.content.pokemon.register
+      mod.content.pokemon.register = function(self, id, data, ...)
+        return origPokeReg(self, id, type(data) == "table" and normalizePokemonData(id, data) or data, ...)
+      end
     end
 
-    local origReg = mod.content.pokemon.register
-    mod.content.pokemon.register = function(self, id, data, ...)
-      if type(data) == "table" then
-        data = normalizePokemonData(id, data)
+    if mod.content.moves then
+      local origMoveReg = mod.content.moves.register
+      mod.content.moves.register = function(self, id, data, ...)
+        return origMoveReg(self, id, type(data) == "table" and normalizeMoveData(id, data) or data, ...)
       end
-      return origReg(self, id, data, ...)
+      local origMovePatch = mod.content.moves.patch
+      mod.content.moves.patch = function(self, id, data, ...)
+        return origMovePatch(self, id, type(data) == "table" and normalizeMoveData(id, data) or data, ...)
+      end
     end
   end
 
-  -- 3. SAFE MODULE LOADER WITH ERROR REPORTING
+  -- SAFE LOADER
   local function loadModule(name)
     local status, fn = pcall(require, name)
     if status and type(fn) == "function" then
@@ -128,7 +128,6 @@ return function(mod)
       if not ok then mod.log:error("Error in " .. name .. ": " .. tostring(err)) end
       return true
     end
-    
     local path = mod.path and (mod.path .. "/" .. name .. ".lua") or (name .. ".lua")
     local chunk, loadErr = loadfile(path)
     if chunk then
@@ -142,6 +141,9 @@ return function(mod)
     end
   end
   mod.loadModule = loadModule
+
+  -- Load Custom Types & Effectiveness BEFORE Moves/Pokemon[cite: 4, 9]
+  loadModule("modern-types")
 
   if mod.options:get("modern_battle_fixes") then
     mod.content.moves:patch("FOCUS_ENERGY", { accuracy = 100 })
@@ -165,8 +167,4 @@ return function(mod)
   loadModule("npcs_dialogue")
   loadModule("story_events")
   loadModule("ui-enhancements")
-
-  mod.events:on("game.ready", function(ev)
-    mod.log:info("Kanto Revitalised is active!")
-  end)
 end
