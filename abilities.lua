@@ -16,7 +16,9 @@ return function(mod)
     if mod.options and mod.options:get("show_ability_popups") then
       mod.BATTLE_POPUP_TEXT = text
       mod.BATTLE_POPUP_TIMER = 120 -- Display for approx 2 seconds at 60fps
-      mod.log:info("Ability Triggered: " .. text)
+    end
+    if mod.log and mod.log.info then
+      mod.log:info("Ability Triggered: " .. tostring(text))
     end
   end
   mod.triggerAbilityPopup = triggerAbilityPopup
@@ -426,13 +428,16 @@ return function(mod)
     CHLOROPHYLL = "Boosts Speed in sunshine.",
     CLEAR_BODY = "Prevents stats from being lowered.",
     CLOUD_NINE = "Eliminates all effects of weather conditions.",
+    COLOR_CHANGE = "Changes type to that of the move hit by.",
     COMPETITIVE = "Boosts Sp. Atk when a stat is lowered by a foe.",
     COMPOUND_EYES = "Increases the accuracy of moves.",
+    CONTRARY = "Reverses stat changes taken.",
     CURSED_BODY = "May disable a move used on the Pokémon.",
     CUTE_CHARM = "Contact with the Pokémon may cause infatuation.",
     DAMP = "Prevents self-destruct moves and explosive abilities.",
     DEFIANT = "Boosts Attack when a stat is lowered by a foe.",
     DOWNLOAD = "Adjusts Attack or Sp. Atk based on foe's stats.",
+    DRIZZLE = "Summons rain upon entering battle.",
     DROUGHT = "Summons harsh sunlight upon entering battle.",
     DRY_SKIN = "Restores HP in rain or from Water; weak to Fire.",
     EARLY_BIRD = "The Pokémon awakens quickly from sleep.",
@@ -440,6 +445,7 @@ return function(mod)
     FILTER = "Reduces damage taken from super-effective attacks.",
     FLAME_BODY = "Contact with the Pokémon may inflict a burn.",
     FLASH_FIRE = "Grants Fire immunity and powers up Fire moves.",
+    FORECAST = "Transforms with the weather conditions.",
     FOREWARN = "Reveals the opposing Pokémon's strongest move.",
     FRIEND_GUARD = "Reduces damage taken by allies in battle.",
     FRISK = "Identifies the held item of opposing Pokémon.",
@@ -447,6 +453,9 @@ return function(mod)
     GUTS = "Boosts Attack when afflicted with a status condition.",
     HARVEST = "May restore a consumed Berry, especially in sun.",
     HEALER = "May heal an ally's status condition each turn.",
+    HEAVY_METAL = "Doubles the Pokémon's weight.",
+    HONEY_GATHER = "May gather Honey after a battle.",
+    HUGE_POWER = "Doubles the Pokémon's Attack stat.",
     HUSTLE = "Boosts Attack but lowers physical move accuracy.",
     HYDRATION = "Cures status conditions in rain at turn end.",
     HYPER_CUTTER = "Prevents Attack stat from being lowered.",
@@ -464,24 +473,34 @@ return function(mod)
     LEAF_GUARD = "Prevents status conditions in harsh sunlight.",
     LEVITATE = "Gives immunity to Ground-type moves.",
     LIGHTNING_ROD = "Draws in Electric moves to raise Sp. Atk.",
+    LIGHT_METAL = "Halves the Pokémon's weight.",
     LIMBER = "Protects the Pokémon from paralysis.",
     LIQUID_OOZE = "Damages opponents that attempt to drain HP.",
     MAGIC_GUARD = "Only takes damage from direct attacks.",
+    MAGMA_ARMOR = "Prevents the Pokémon from being frozen.",
     MAGNET_PULL = "Prevents Steel-type Pokémon from escaping.",
     MARVEL_SCALE = "Boosts Defense when afflicted with status.",
+    MINUS = "Boosts Sp. Atk if an ally has Plus or Minus.",
     MOLD_BREAKER = "Moves ignore defensive abilities of targets.",
+    MOODY = "Raises one stat sharply and lowers another every turn.",
     MOXIE = "Raises Attack after knocking out a target.",
     MULTISCALE = "Reduces damage taken at full HP.",
     NATURAL_CURE = "Cures status conditions upon switching out.",
     NO_GUARD = "Ensures all moves used by or against it hit.",
+    NORMALIZE = "All moves used become Normal-type.",
     OBLIVIOUS = "Protects from infatuation, taunts, and charm.",
     OVERCOAT = "Immune to weather damage and powder moves.",
     OVERGROW = "Boosts Grass-type moves when HP is low.",
     OWN_TEMPO = "Protects the Pokémon from confusion.",
     PICKUP = "May find items after battle or pick up used items.",
+    PLUS = "Boosts Sp. Atk if an ally has Plus or Minus.",
+    POISON_HEAL = "Restores HP instead of taking poison damage.",
     POISON_POINT = "Contact with the Pokémon may inflict poison.",
     POISON_TOUCH = "Contact moves have a chance to poison the foe.",
+    PRANKSTER = "Gives priority to status moves.",
     PRESSURE = "Raises opposing Pokémon's PP usage.",
+    PROTEAN = "Changes type to match the move used.",
+    PURE_POWER = "Doubles the Pokémon's Attack stat.",
     QUICK_FEET = "Boosts Speed when afflicted with a status condition.",
     RAIN_DISH = "Gradually regains HP in rain.",
     RATTLED = "Raises Speed when hit by Bug, Dark, or Ghost moves.",
@@ -489,36 +508,49 @@ return function(mod)
     REGENERATOR = "Restores 1/3 max HP upon switching out.",
     RIVALRY = "Deals extra damage to same-gender targets.",
     ROCK_HEAD = "Protects the Pokémon from recoil damage.",
+    ROUGH_SKIN = "Inflicts damage on contact attackers.",
     RUN_AWAY = "Guarantees escape from wild encounters.",
     SAND_FORCE = "Boosts Rock, Ground, and Steel moves in Sandstorm.",
     SAND_RUSH = "Doubles Speed in Sandstorm and grants immunity.",
+    SAND_STREAM = "Summons a sandstorm upon entering battle.",
     SAND_VEIL = "Raises evasiveness during a Sandstorm.",
+    SAP_SIPPER = "Boosts Attack when hit by Grass moves.",
     SCRAPPY = "Enables Fighting and Normal moves to hit Ghosts.",
     SERENE_GRACE = "Doubles the chance of secondary move effects.",
+    SHADOW_TAG = "Prevents opposing Pokémon from escaping.",
     SHED_SKIN = "May cure status conditions at turn end.",
     SHEER_FORCE = "Removes additional effects to increase move power.",
     SHELL_ARMOR = "Protects the Pokémon against critical hits.",
     SHIELD_DUST = "Blocks secondary effects of opposing moves.",
+    SIMPLE = "Doubles the effect of stat stage changes.",
     SKILL_LINK = "Multi-hit attacks always hit maximum times.",
     SNIPER = "Powers up critical hits significantly.",
     SNOW_CLOAK = "Raises evasiveness in Hail and grants immunity.",
     SOLAR_POWER = "Boosts Sp. Atk in sun, but loses HP.",
+    SOLID_ROCK = "Reduces damage taken from super-effective attacks.",
     SOUNDPROOF = "Grants full immunity to sound-based moves.",
     SPEED_BOOST = "Its Speed stat is gradually boosted.",
+    STALL = "The Pokémon always moves last in its turn.",
     STATIC = "May paralyze attackers on contact.",
     STEADFAST = "Raises Speed stat whenever flinched.",
     STENCH = "Attacks have a chance to cause the target to flinch.",
     STICKY_HOLD = "Prevents item theft by opposing moves or abilities.",
+    STORM_DRAIN = "Draws in Water moves to raise Sp. Atk.",
     STURDY = "Survives fatal hits from full HP and blocks OHKO.",
+    SUCTION_CUPS = "Prevents forced switching or item theft.",
+    SUPER_LUCK = "Heightens the critical-hit ratio of moves.",
     SWARM = "Powers up Bug-type moves when HP is low.",
     SWIFT_SWIM = "Doubles the Pokémon's Speed in rain.",
     SYNCHRONIZE = "Passes poison, paralyze, or burn to the foe.",
     TANGLED_FEET = "Raises evasiveness when confused.",
     TECHNICIAN = "Powers up weaker moves.",
+    TELEPATHY = "Anticipates and dodges ally attacks.",
     THICK_FAT = "Halves damage from Fire and Ice attacks.",
     TINTED_LENS = "Powers up moves that are not very effective.",
     TORRENT = "Boosts Water-type moves when HP is low.",
+    TOXIC_BOOST = "Powers up physical attacks when poisoned.",
     TRACE = "Copies a random opposing Pokémon's ability on entry.",
+    TRUANT = "The Pokémon can't attack on consecutive turns.",
     UNAWARE = "Ignores foe's stat changes when calculating damage.",
     UNBURDEN = "Doubles Speed upon losing or consuming held item.",
     UNNERVE = "Makes opposing Pokémon unable to eat Berries.",
@@ -527,15 +559,21 @@ return function(mod)
     WATER_ABSORB = "Restores HP when hit by Water-type moves.",
     WATER_VEIL = "Protects the Pokémon from burns.",
     WEAK_ARMOR = "Physical hits lower Defense and double Speed.",
+    WHITE_SMOKE = "Prevents stats from being lowered.",
+    WONDER_GUARD = "Only super-effective moves will hit.",
     WONDER_SKIN = "Status moves are 50% less accurate against it."
   }
 
-  local function getMonAbility(mon)
+  local function getMonAbility(mon, battler)
+    if battler and type(battler) == "table" and (battler._traced_ability or battler._temp_ability) then
+      return (battler._traced_ability or battler._temp_ability):upper()
+    end
     if not mon then return "NONE" end
+    if type(mon) == "string" then return mon:upper() end
     if mon.ability and type(mon.ability) == "string" then return mon.ability:upper() end
 
     local species = (mon.species and tostring(mon.species):upper()) or "BULBASAUR"
-    local pool = mod.CUSTOM_ABILITIES and mod.CUSTOM_ABILITIES[species] or SPECIES_ABILITIES[species] or { "ADAPTABILITY" }
+    local pool = (mod.CUSTOM_ABILITIES and mod.CUSTOM_ABILITIES[species]) or SPECIES_ABILITIES[species] or { "ADAPTABILITY" }
 
     local hash = 0
     if mon.dvs then
@@ -549,22 +587,211 @@ return function(mod)
   end
 
   local function hasAbility(battler, abId)
-    if not battler or not battler.mon then return false end
-    return getMonAbility(battler.mon) == abId:upper()
+    if not battler then return false end
+    if type(battler) == "string" then return battler:upper() == abId:upper() end
+    local mon = (type(battler) == "table" and battler.mon) or battler
+    return getMonAbility(mon, (type(battler) == "table" and battler or nil)) == abId:upper()
+  end
+
+  local function isWeatherActive(battle, weatherType)
+    if not battle then return false end
+    if hasAbility(battle.player, "AIR_LOCK") or hasAbility(battle.enemy, "AIR_LOCK") or
+       hasAbility(battle.player, "CLOUD_NINE") or hasAbility(battle.enemy, "CLOUD_NINE") then
+      return false
+    end
+    return (battle.weather == weatherType:upper())
+  end
+
+  local function getPokemonWeight(mon, battler)
+    if not mon then return 10.0 end
+    local baseWeight = mon.weight or 10.0
+    local ab = getMonAbility(mon, battler)
+    if ab == "HEAVY_METAL" then return baseWeight * 2.0 end
+    if ab == "LIGHT_METAL" then return baseWeight * 0.5 end
+    return baseWeight
   end
 
   mod.getMonAbility = getMonAbility
   mod.hasAbility = hasAbility
+  mod.isWeatherActive = isWeatherActive
+  mod.getPokemonWeight = getPokemonWeight
   mod.ABILITY_DESCRIPTIONS = ABILITY_DESCRIPTIONS
-  mod.exports = { getMonAbility = getMonAbility, hasAbility = hasAbility, ABILITY_DESCRIPTIONS = ABILITY_DESCRIPTIONS }
+  mod.SPECIES_ABILITIES = SPECIES_ABILITIES
+  mod.exports = {
+    getMonAbility = getMonAbility,
+    hasAbility = hasAbility,
+    isWeatherActive = isWeatherActive,
+    getPokemonWeight = getPokemonWeight,
+    ABILITY_DESCRIPTIONS = ABILITY_DESCRIPTIONS,
+    SPECIES_ABILITIES = SPECIES_ABILITIES
+  }
+
+  -- Helper function to process entry abilities on battler switch-in or battle start
+  local function processEntryAbilities(b, opp, battle)
+    if not b or not opp or not battle then return end
+
+    -- Wrap modify_stat_stage for battler if not already wrapped
+    if b.modify_stat_stage and not b._stat_wrapped then
+      local origModify = b.modify_stat_stage
+      b.modify_stat_stage = function(self, stat, val, sourceIsFoe, ...)
+        local bName = tostring(self.name or (self.mon and self.mon.species) or "Pokémon")
+        local currentAb = getMonAbility(self.mon or self, self)
+
+        -- CONTRARY
+        if currentAb == "CONTRARY" then
+          val = -val
+        end
+
+        -- SIMPLE
+        if currentAb == "SIMPLE" then
+          val = val * 2
+        end
+
+        -- Negative Stat Stage Protection against Foes
+        if val < 0 and sourceIsFoe then
+          if currentAb == "CLEAR_BODY" or currentAb == "WHITE_SMOKE" then
+            triggerAbilityPopup(bName .. "'s " .. currentAb .. " prevents stat loss!")
+            return false
+          end
+          if stat == "attack" and currentAb == "HYPER_CUTTER" then
+            triggerAbilityPopup(bName .. "'s HYPER CUTTER prevents Attack loss!")
+            return false
+          end
+          if stat == "defense" and currentAb == "BIG_PECKS" then
+            triggerAbilityPopup(bName .. "'s BIG PECKS prevents Defense loss!")
+            return false
+          end
+          if stat == "accuracy" and currentAb == "KEEN_EYE" then
+            triggerAbilityPopup(bName .. "'s KEEN EYE prevents Accuracy loss!")
+            return false
+          end
+
+          -- DEFIANT & COMPETITIVE
+          local res = origModify(self, stat, val, sourceIsFoe, ...)
+          if currentAb == "DEFIANT" then
+            triggerAbilityPopup(bName .. "'s DEFIANT!")
+            origModify(self, "attack", 2, false)
+          elseif currentAb == "COMPETITIVE" then
+            triggerAbilityPopup(bName .. "'s COMPETITIVE!")
+            origModify(self, "spAtk", 2, false)
+          end
+          return res
+        end
+
+        return origModify(self, stat, val, sourceIsFoe, ...)
+      end
+      b._stat_wrapped = true
+    end
+
+    local bName = tostring(b.name or (b.mon and b.mon.species) or "Pokémon")
+    local oppName = tostring(opp.name or (opp.mon and opp.mon.species) or "Enemy")
+
+    -- FORECAST (Temporary type shift on battler)
+    if hasAbility(b, "FORECAST") then
+      if isWeatherActive(battle, "SUN") then b.temp_type1 = "FIRE"
+      elseif isWeatherActive(battle, "RAIN") then b.temp_type1 = "WATER"
+      elseif isWeatherActive(battle, "HAIL") then b.temp_type1 = "ICE"
+      else b.temp_type1 = "NORMAL" end
+    end
+
+    -- INTIMIDATE
+    if hasAbility(b, "INTIMIDATE") then
+      triggerAbilityPopup(bName .. "'s INTIMIDATE!")
+      if opp.modify_stat_stage then
+        opp:modify_stat_stage("attack", -1, true)
+      end
+    end
+
+    -- TRACE (Temporary in-battle traced ability)
+    if hasAbility(b, "TRACE") then
+      local oppAb = getMonAbility(opp.mon or opp, opp)
+      if oppAb ~= "NONE" and oppAb ~= "TRACE" then
+        triggerAbilityPopup(bName .. " TRACED " .. oppAb .. "!")
+        b._traced_ability = oppAb
+      end
+    end
+
+    -- DOWNLOAD
+    if hasAbility(b, "DOWNLOAD") and opp.mon and opp.mon.stats then
+      triggerAbilityPopup(bName .. "'s DOWNLOAD!")
+      local def = opp.mon.stats.defense or 50
+      local spDef = opp.mon.stats.specialDefense or opp.mon.stats.special or 50
+      if def < spDef then
+        if b.modify_stat_stage then b:modify_stat_stage("attack", 1, false) end
+      else
+        if b.modify_stat_stage then b:modify_stat_stage("spAtk", 1, false) end
+      end
+    end
+
+    -- IMPOSTER
+    if hasAbility(b, "IMPOSTER") and opp.mon then
+      triggerAbilityPopup(bName .. "'s IMPOSTER transformed into " .. oppName .. "!")
+      b.transformed = true
+      b.transformed_species = opp.mon.species
+    end
+
+    -- FOREWARN
+    if hasAbility(b, "FOREWARN") and opp.mon and opp.mon.moves then
+      triggerAbilityPopup(bName .. "'s FOREWARN sensed a threat!")
+    end
+
+    -- FRISK
+    if hasAbility(b, "FRISK") and opp.mon and opp.mon.item then
+      triggerAbilityPopup(bName .. " FRISKED opponent's " .. tostring(opp.mon.item) .. "!")
+    end
+
+    -- ANTICIPATION
+    if hasAbility(b, "ANTICIPATION") then
+      triggerAbilityPopup(bName .. " shuddered with ANTICIPATION!")
+    end
+
+    -- MOLD_BREAKER
+    if hasAbility(b, "MOLD_BREAKER") then
+      triggerAbilityPopup(bName .. " breaks the mold!")
+    end
+
+    -- PRESSURE
+    if hasAbility(b, "PRESSURE") then
+      triggerAbilityPopup(bName .. " is exerting its PRESSURE!")
+    end
+
+    -- UNNERVE
+    if hasAbility(b, "UNNERVE") then
+      triggerAbilityPopup(bName .. "'s UNNERVE makes the foe nervous!")
+    end
+
+    -- SHADOW_TAG / MAGNET_PULL / ARENA_TRAP (Trapping popups)
+    if hasAbility(b, "SHADOW_TAG") or hasAbility(b, "MAGNET_PULL") or hasAbility(b, "ARENA_TRAP") then
+      triggerAbilityPopup(bName .. "'s trapping ability is active!")
+    end
+
+    -- WEATHER ON ENTRY
+    if hasAbility(b, "DROUGHT") then
+      triggerAbilityPopup(bName .. "'s DROUGHT brought harsh sunlight!")
+      battle.weather = "SUN"
+      battle.weather_turns = 5
+    elseif hasAbility(b, "DRIZZLE") then
+      triggerAbilityPopup(bName .. "'s DRIZZLE brought rain!")
+      battle.weather = "RAIN"
+      battle.weather_turns = 5
+    elseif hasAbility(b, "SAND_STREAM") then
+      triggerAbilityPopup(bName .. "'s SAND STREAM created a sandstorm!")
+      battle.weather = "SANDSTORM"
+      battle.weather_turns = 5
+    end
+  end
 
   -- =========================================================================
-  -- BATTLE INITIALIZATION & WEATHER SETUP
+  -- BATTLE INITIALIZATION & ENTRY ABILITIES
   -- =========================================================================
   mod.events:on("battle.started", function(ev)
     if ev and ev.battle then
       ev.battle.weather = "CLEAR"
       ev.battle.weather_turns = 0
+      if ev.battle.player and ev.battle.enemy then
+        processEntryAbilities(ev.battle.player, ev.battle.enemy, ev.battle)
+        processEntryAbilities(ev.battle.enemy, ev.battle.player, ev.battle)
+      end
     end
   end)
 
@@ -572,268 +799,656 @@ return function(mod)
     if not ev or not ev.battler or not ev.battle then return end
     local b = ev.battler
     local opp = (ev.side == "player") and ev.battle.enemy or ev.battle.player
-    local bName = tostring(b.name or "Pokémon")
 
-    if hasAbility(b, "INTIMIDATE") and opp then
-      if not hasAbility(opp, "CLEAR_BODY") and not hasAbility(opp, "HYPER_CUTTER") then
-        mod.triggerAbilityPopup(bName .. "'s INTIMIDATE!")
-        if opp.modify_stat_stage then opp:modify_stat_stage("attack", -1) end
+    -- Reset temporary in-battle state on previous battler
+    if ev.previous_battler then
+      ev.previous_battler._traced_ability = nil
+      ev.previous_battler.temp_type1 = nil
+      ev.previous_battler.transformed = false
+
+      -- REGENERATOR (Healing 1/3 HP when switching out)
+      if hasAbility(ev.previous_battler, "REGENERATOR") and ev.previous_battler.mon then
+        if ev.previous_battler.mon.heal then ev.previous_battler.mon:heal(math.floor((ev.previous_battler.mon.max_hp or 100) / 3)) end
+      end
+      -- NATURAL CURE (Clearing status when switching out)
+      if hasAbility(ev.previous_battler, "NATURAL_CURE") and ev.previous_battler.mon then
+        ev.previous_battler.mon.status = "NONE"
       end
     end
 
-    if hasAbility(b, "TRACE") and opp then
-      local oppAb = getMonAbility(opp.mon)
-      if oppAb ~= "NONE" then
-        mod.triggerAbilityPopup(bName .. " TRACED " .. oppAb .. "!")
-        b.mon.ability = oppAb
-      end
-    end
-
-    if hasAbility(b, "DOWNLOAD") and opp and opp.mon and opp.mon.stats then
-      mod.triggerAbilityPopup(bName .. "'s DOWNLOAD!")
-      local def = opp.mon.stats.defense or 50
-      local spDef = opp.mon.stats.specialDefense or opp.mon.stats.special or 50
-      if def < spDef then
-        if b.modify_stat_stage then b:modify_stat_stage("attack", 1) end
-      else
-        if b.modify_stat_stage then b:modify_stat_stage("spAtk", 1) end
-      end
-    end
-
-    if hasAbility(b, "DROUGHT") then
-      mod.triggerAbilityPopup(bName .. "'s DROUGHT!")
-      ev.battle.weather = "SUN"
-      ev.battle.weather_turns = 5
-    elseif hasAbility(b, "DRIZZLE") then
-      mod.triggerAbilityPopup(bName .. "'s DRIZZLE!")
-      ev.battle.weather = "RAIN"
-      ev.battle.weather_turns = 5
-    elseif hasAbility(b, "SAND_STREAM") then
-      mod.triggerAbilityPopup(bName .. "'s SAND STREAM!")
-      ev.battle.weather = "SANDSTORM"
-      ev.battle.weather_turns = 5
-    end
+    processEntryAbilities(b, opp, ev.battle)
   end)
 
   -- =========================================================================
-  -- DAMAGE CALCULATION HOOK (Immunities, Reductions, and Boosts)[cite: 8, 9]
+  -- TURN ORDER HOOK (Priority & Speed Modifications)
+  -- =========================================================================
+  mod.hooks:wrap("battle.turn_order", function(next, pBattler, pMove, eBattler, eMove, ctx)
+    local pPriority = (pMove and pMove.priority) or 0
+    local ePriority = (eMove and eMove.priority) or 0
+
+    -- PRANKSTER (Priority boost for status moves)
+    if pMove and (pMove.category == "status" or pMove.category == "STATUS") and hasAbility(pBattler, "PRANKSTER") then
+      pPriority = pPriority + 1
+    end
+    if eMove and (eMove.category == "status" or eMove.category == "STATUS") and hasAbility(eBattler, "PRANKSTER") then
+      ePriority = ePriority + 1
+    end
+
+    -- Compare priorities first
+    if pPriority ~= ePriority then
+      return pPriority > ePriority
+    end
+
+    local pSpeed = pBattler and pBattler.mon and (pBattler.mon.stats and (pBattler.mon.stats.speed or pBattler.mon.stats.spe) or 50) or 50
+    local eSpeed = eBattler and eBattler.mon and (eBattler.mon.stats and (eBattler.mon.stats.speed or eBattler.mon.stats.spe) or 50) or 50
+
+    local battle = (ctx and ctx.battle) or (mod.game and mod.game.battle)
+
+    -- Weather Speed Modifiers
+    if battle then
+      if isWeatherActive(battle, "RAIN") then
+        if hasAbility(pBattler, "SWIFT_SWIM") then pSpeed = pSpeed * 2 end
+        if hasAbility(eBattler, "SWIFT_SWIM") then eSpeed = eSpeed * 2 end
+      elseif isWeatherActive(battle, "SUN") then
+        if hasAbility(pBattler, "CHLOROPHYLL") then pSpeed = pSpeed * 2 end
+        if hasAbility(eBattler, "CHLOROPHYLL") then eSpeed = eSpeed * 2 end
+      elseif isWeatherActive(battle, "SANDSTORM") then
+        if hasAbility(pBattler, "SAND_RUSH") then pSpeed = pSpeed * 2 end
+        if hasAbility(eBattler, "SAND_RUSH") then eSpeed = eSpeed * 2 end
+      end
+    end
+
+    -- Status condition speed modifier (Quick Feet)
+    if hasAbility(pBattler, "QUICK_FEET") and pBattler.mon and pBattler.mon.status and pBattler.mon.status ~= "NONE" then
+      pSpeed = math.floor(pSpeed * 1.5)
+    end
+    if hasAbility(eBattler, "QUICK_FEET") and eBattler.mon and eBattler.mon.status and eBattler.mon.status ~= "NONE" then
+      eSpeed = math.floor(eSpeed * 1.5)
+    end
+
+    -- UNBURDEN
+    if hasAbility(pBattler, "UNBURDEN") and pBattler.mon and pBattler.mon.item_lost then
+      pSpeed = pSpeed * 2
+    end
+    if hasAbility(eBattler, "UNBURDEN") and eBattler.mon and eBattler.mon.item_lost then
+      eSpeed = eSpeed * 2
+    end
+
+    -- STALL (Always moves last)
+    if hasAbility(pBattler, "STALL") then pSpeed = -9999 end
+    if hasAbility(eBattler, "STALL") then eSpeed = -9999 end
+
+    if ctx then
+      ctx.pSpeed = pSpeed
+      ctx.eSpeed = eSpeed
+    end
+
+    if pSpeed ~= eSpeed then
+      return pSpeed > eSpeed
+    end
+
+    return next(pBattler, pMove, eBattler, eMove, ctx)
+  end)
+
+  -- =========================================================================
+  -- DAMAGE CALCULATION HOOK (Immunities, Offenses, Defenses, and Multipliers)
   -- =========================================================================
   mod.hooks:wrap("battle.damage", function(next, ctx)
-    local damage, info = next(ctx)
-    if not ctx or not ctx.move or not ctx.target or not ctx.target.mon or not ctx.user then return damage, info end
+    if not ctx or not ctx.move or not ctx.target or not ctx.user then
+      return next(ctx)
+    end
 
     local attacker = ctx.user
     local defender = ctx.target
-    local moveType = ctx.move.type or ctx.move.type1
-    local isPhysical = (ctx.move.category and ctx.move.category:upper() == "PHYSICAL")
+    local move = ctx.move
+    local battle = (ctx.battle) or (mod.game and mod.game.battle)
 
-    -- Immunities & Absorbs
-    if hasAbility(defender, "LEVITATE") and moveType == "GROUND" then
-      mod.triggerAbilityPopup(defender.name .. "'s LEVITATE!")
-      return 0, info
-    end
-    if hasAbility(defender, "WATER_ABSORB") and moveType == "WATER" then
-      mod.triggerAbilityPopup(defender.name .. "'s WATER ABSORB!")
-      if defender.mon.heal then defender.mon:heal(math.floor((defender.mon.max_hp or 100) / 4)) end
-      return 0, info
-    end
-    if hasAbility(defender, "VOLT_ABSORB") and moveType == "ELECTRIC" then
-      mod.triggerAbilityPopup(defender.name .. "'s VOLT ABSORB!")
-      if defender.mon.heal then defender.mon:heal(math.floor((defender.mon.max_hp or 100) / 4)) end
-      return 0, info
-    end
-    if hasAbility(defender, "FLASH_FIRE") and moveType == "FIRE" then
-      mod.triggerAbilityPopup(defender.name .. "'s FLASH FIRE!")
-      return 0, info
-    end
-    if hasAbility(defender, "SAP_SIPPER") and moveType == "GRASS" then
-      mod.triggerAbilityPopup(defender.name .. "'s SAP SIPPER!")
-      if defender.modify_stat_stage then defender:modify_stat_stage("attack", 1) end
-      return 0, info
-    end
-    if hasAbility(defender, "MOTOR_DRIVE") and moveType == "ELECTRIC" then
-      mod.triggerAbilityPopup(defender.name .. "'s MOTOR DRIVE!")
-      if defender.modify_stat_stage then defender:modify_stat_stage("speed", 1) end
-      return 0, info
+    local moveType = move.type or move.type1 or "NORMAL"
+    local isPhysical = (move.category and move.category:upper() == "PHYSICAL") or false
+
+    -- PRE-DAMAGE CONTEXT MUTATIONS
+    -- PROTEAN (Temporary type shift on battler)
+    if hasAbility(attacker, "PROTEAN") and moveType then
+      attacker.temp_type1 = moveType
     end
 
-    -- Reductions
-    if hasAbility(defender, "THICK_FAT") and (moveType == "FIRE" or moveType == "ICE") then
-      mod.triggerAbilityPopup(defender.name .. "'s THICK FAT!")
-      damage = math.floor(damage * 0.5)
+    -- NORMALIZE (Attacker turns move to Normal type)
+    if hasAbility(attacker, "NORMALIZE") then
+      moveType = "NORMAL"
+      ctx.move.type = "NORMAL"
     end
-    if hasAbility(defender, "MULTISCALE") and defender.mon.hp == (defender.mon.max_hp or 100) then
-      mod.triggerAbilityPopup(defender.name .. "'s MULTISCALE!")
-      damage = math.floor(damage * 0.5)
+
+    -- COMPOUND EYES (Increases accuracy)
+    if hasAbility(attacker, "COMPOUND_EYES") and ctx.accuracy then
+      ctx.accuracy = math.floor(ctx.accuracy * 1.3)
     end
-    if hasAbility(defender, "FILTER") or hasAbility(defender, "SOLID_ROCK") then
-      if info and info.typeMult and info.typeMult > 10 then
-        mod.triggerAbilityPopup(defender.name .. " reduced the damage!")
+
+    -- SERENE GRACE (Doubles secondary effect chance)
+    if hasAbility(attacker, "SERENE_GRACE") and ctx.effectChance then
+      ctx.effectChance = ctx.effectChance * 2
+    end
+
+    -- SKILL LINK (Multi-hit moves hit 5 times)
+    if hasAbility(attacker, "SKILL_LINK") and move.isMultiHit then
+      ctx.hitCount = 5
+    end
+
+    -- MOLD BREAKER check (Ignores defender defensive abilities)
+    local ignoreDefensiveAbilities = hasAbility(attacker, "MOLD_BREAKER")
+
+    if not ignoreDefensiveAbilities then
+      -- WONDER SKIN (Status moves 50% less accurate)
+      if hasAbility(defender, "WONDER_SKIN") and (move.category == "status" or move.category == "STATUS") and ctx.accuracy then
+        ctx.accuracy = math.floor(ctx.accuracy * 0.5)
+      end
+
+      -- EVASIVENESS BOOSTS IN WEATHER / STATUS (Sand Veil, Snow Cloak, Tangled Feet)
+      if battle then
+        if isWeatherActive(battle, "SANDSTORM") and hasAbility(defender, "SAND_VEIL") and ctx.accuracy then
+          ctx.accuracy = math.floor(ctx.accuracy * 0.8)
+        elseif isWeatherActive(battle, "HAIL") and hasAbility(defender, "SNOW_CLOAK") and ctx.accuracy then
+          ctx.accuracy = math.floor(ctx.accuracy * 0.8)
+        end
+      end
+      if hasAbility(defender, "TANGLED_FEET") and defender.mon and defender.mon.status == "CONFUSION" and ctx.accuracy then
+        ctx.accuracy = math.floor(ctx.accuracy * 0.8)
+      end
+    end
+
+    -- UNAWARE (Ignores opponent stat changes)
+    if hasAbility(attacker, "UNAWARE") or (not ignoreDefensiveAbilities and hasAbility(defender, "UNAWARE")) then
+      ctx.ignoreStatStages = true
+    end
+
+    -- CALCULATE BASE DAMAGE
+    local damage, info = next(ctx)
+
+    -- -----------------------------------------------------------------------
+    -- IMMUNITIES & ABSORBS (Unless Mold Breaker)
+    -- Pure damage evaluation (Side effects execute in damage_dealt or move application)
+    -- -----------------------------------------------------------------------
+    if not ignoreDefensiveAbilities then
+      -- WONDER GUARD
+      if hasAbility(defender, "WONDER_GUARD") and info and info.typeMult and info.typeMult <= 10 then
+        triggerAbilityPopup(defender.name .. "'s WONDER GUARD avoided the attack!")
+        return 0, info
+      end
+
+      -- SOUNDPROOF
+      if hasAbility(defender, "SOUNDPROOF") and (move.isSound or move.id == "HYPER_VOICE" or move.id == "SING" or move.id == "SCREAM") then
+        triggerAbilityPopup(defender.name .. "'s SOUNDPROOF blocked the move!")
+        return 0, info
+      end
+
+      -- TELEPATHY (Protects from ally moves in doubles)
+      if hasAbility(defender, "TELEPATHY") and ctx.isAllyAttacker then
+        triggerAbilityPopup(defender.name .. "'s TELEPATHY dodged ally move!")
+        return 0, info
+      end
+
+      -- DAMP
+      if (hasAbility(attacker, "DAMP") or hasAbility(defender, "DAMP")) and (move.id == "EXPLOSION" or move.id == "SELFDESTRUCT") then
+        triggerAbilityPopup("DAMP prevented the explosion!")
+        return 0, info
+      end
+
+      -- LEVITATE
+      if hasAbility(defender, "LEVITATE") and moveType == "GROUND" then
+        triggerAbilityPopup(defender.name .. "'s LEVITATE!")
+        return 0, info
+      end
+
+      -- WATER ABSORB / DRY SKIN / STORM DRAIN
+      if moveType == "WATER" then
+        if hasAbility(defender, "WATER_ABSORB") or hasAbility(defender, "DRY_SKIN") or hasAbility(defender, "STORM_DRAIN") then
+          triggerAbilityPopup(defender.name .. " absorbed Water!")
+          return 0, info
+        end
+      end
+
+      -- VOLT ABSORB / LIGHTNING ROD
+      if moveType == "ELECTRIC" then
+        if hasAbility(defender, "VOLT_ABSORB") or hasAbility(defender, "LIGHTNING_ROD") then
+          triggerAbilityPopup(defender.name .. "'s Electric immunity!")
+          return 0, info
+        end
+      end
+
+      -- FLASH FIRE
+      if hasAbility(defender, "FLASH_FIRE") and moveType == "FIRE" then
+        triggerAbilityPopup(defender.name .. "'s FLASH FIRE!")
+        return 0, info
+      end
+
+      -- SAP SIPPER
+      if hasAbility(defender, "SAP_SIPPER") and moveType == "GRASS" then
+        triggerAbilityPopup(defender.name .. "'s SAP SIPPER!")
+        return 0, info
+      end
+
+      -- MAGIC GUARD (Only direct attacks do damage; immune to indirect damage)
+      if hasAbility(defender, "MAGIC_GUARD") and move.isIndirect then
+        return 0, info
+      end
+
+      -- OVERCOAT (Immune to powder & weather damage)
+      if hasAbility(defender, "OVERCOAT") and (move.isPowder or move.isWeatherDamage) then
+        return 0, info
+      end
+
+      -- SHIELD DUST (Immune to secondary move effects)
+      if hasAbility(defender, "SHIELD_DUST") and info then
+        info.secondaryTriggered = false
+      end
+    end
+
+    -- -----------------------------------------------------------------------
+    -- DEFENSIVE DAMAGE REDUCTIONS
+    -- -----------------------------------------------------------------------
+    if not ignoreDefensiveAbilities then
+      -- THICK FAT
+      if hasAbility(defender, "THICK_FAT") and (moveType == "FIRE" or moveType == "ICE") then
+        triggerAbilityPopup(defender.name .. "'s THICK FAT!")
+        damage = math.floor(damage * 0.5)
+      end
+
+      -- MULTISCALE
+      if hasAbility(defender, "MULTISCALE") and defender.mon and defender.mon.hp == (defender.mon.max_hp or 100) then
+        triggerAbilityPopup(defender.name .. "'s MULTISCALE!")
+        damage = math.floor(damage * 0.5)
+      end
+
+      -- FILTER & SOLID ROCK
+      if (hasAbility(defender, "FILTER") or hasAbility(defender, "SOLID_ROCK")) and info and info.typeMult and info.typeMult > 10 then
+        triggerAbilityPopup(defender.name .. " reduced super-effective damage!")
+        damage = math.floor(damage * 0.75)
+      end
+
+      -- DRY SKIN (Weak to Fire)
+      if hasAbility(defender, "DRY_SKIN") and moveType == "FIRE" then
+        damage = math.floor(damage * 1.25)
+      end
+
+      -- MARVEL SCALE (Defense boost if status)
+      if hasAbility(defender, "MARVEL_SCALE") and isPhysical and defender.mon and defender.mon.status and defender.mon.status ~= "NONE" then
+        damage = math.floor(damage * 0.67)
+      end
+
+      -- FRIEND GUARD
+      if hasAbility(defender, "FRIEND_GUARD") then
         damage = math.floor(damage * 0.75)
       end
     end
-    if hasAbility(defender, "DRY_SKIN") and moveType == "FIRE" then
+
+    -- -----------------------------------------------------------------------
+    -- ATTACKER DAMAGE BOOSTS & MODIFIERS
+    -- -----------------------------------------------------------------------
+    -- HUGE POWER / PURE POWER
+    if (hasAbility(attacker, "HUGE_POWER") or hasAbility(attacker, "PURE_POWER")) and isPhysical then
+      damage = math.floor(damage * 2.0)
+    end
+
+    -- ADAPTABILITY (STAB bonus)
+    if hasAbility(attacker, "ADAPTABILITY") and info and info.stab then
+      damage = math.floor(damage * 1.33)
+    end
+
+    -- TECHNICIAN
+    if hasAbility(attacker, "TECHNICIAN") and (move.power or 0) <= 60 and (move.power or 0) > 0 then
+      triggerAbilityPopup(attacker.name .. "'s TECHNICIAN!")
+      damage = math.floor(damage * 1.5)
+    end
+
+    -- IRON FIST
+    if hasAbility(attacker, "IRON_FIST") and string.find(move.id or "", "PUNCH") then
+      damage = math.floor(damage * 1.2)
+    end
+
+    -- RECKLESS (Recoil move boost)
+    if hasAbility(attacker, "RECKLESS") and (move.recoil or move.id == "DOUBLE_EDGE" or move.id == "FLARE_BLITZ" or move.id == "BRAVE_BIRD" or move.id == "WILD_CHARGE" or move.id == "TAKEDOWN") then
+      damage = math.floor(damage * 1.2)
+    end
+
+    -- ROCK HEAD (Prevents recoil damage)
+    if hasAbility(attacker, "ROCK_HEAD") and move.recoil then
+      move.recoil = 0
+    end
+
+    -- TINTED LENS
+    if hasAbility(attacker, "TINTED_LENS") and info and info.typeMult and info.typeMult < 10 then
+      triggerAbilityPopup(attacker.name .. "'s TINTED LENS!")
+      damage = damage * 2
+    end
+
+    -- SNIPER
+    if hasAbility(attacker, "SNIPER") and info and info.crit then
+      triggerAbilityPopup(attacker.name .. "'s SNIPER!")
+      damage = math.floor(damage * 1.5)
+    end
+
+    -- SUPER LUCK (Boosts Crit ratio)
+    if hasAbility(attacker, "SUPER_LUCK") and info then
+      info.critRatio = (info.critRatio or 1) + 1
+    end
+
+    -- GUTS (Attack boost with status)
+    if hasAbility(attacker, "GUTS") and isPhysical and attacker.mon and attacker.mon.status and attacker.mon.status ~= "NONE" then
+      damage = math.floor(damage * 1.5)
+    end
+
+    -- TOXIC BOOST
+    if hasAbility(attacker, "TOXIC_BOOST") and isPhysical and attacker.mon and attacker.mon.status == "POISON" then
+      damage = math.floor(damage * 1.5)
+    end
+
+    -- HUSTLE
+    if hasAbility(attacker, "HUSTLE") and isPhysical then
+      damage = math.floor(damage * 1.5)
+    end
+
+    -- SOLAR POWER
+    if battle and isWeatherActive(battle, "SUN") and hasAbility(attacker, "SOLAR_POWER") and not isPhysical then
+      damage = math.floor(damage * 1.5)
+    end
+
+    -- SAND FORCE
+    if battle and isWeatherActive(battle, "SANDSTORM") and hasAbility(attacker, "SAND_FORCE") and (moveType == "ROCK" or moveType == "GROUND" or moveType == "STEEL") then
+      damage = math.floor(damage * 1.3)
+    end
+
+    -- RIVALRY
+    if hasAbility(attacker, "RIVALRY") then
       damage = math.floor(damage * 1.25)
     end
 
-    -- Attacker Boosts
-    if hasAbility(attacker, "ADAPTABILITY") and info and info.stab then
-      damage = math.floor(damage * 1.33) 
+    -- SHEER FORCE
+    if hasAbility(attacker, "SHEER_FORCE") and move.hasSecondaryEffect then
+      damage = math.floor(damage * 1.3)
     end
-    if hasAbility(attacker, "TECHNICIAN") and (ctx.move.power or 0) <= 60 and (ctx.move.power or 0) > 0 then
-      mod.triggerAbilityPopup(attacker.name .. "'s TECHNICIAN!")
-      damage = math.floor(damage * 1.5)
+
+    -- SCRAPPY (Normal / Fighting hits Ghost)
+    if hasAbility(attacker, "SCRAPPY") and (moveType == "NORMAL" or moveType == "FIGHTING") and defender.mon and (defender.mon.type1 == "GHOST" or defender.mon.type2 == "GHOST") then
+      if info and info.typeMult and info.typeMult == 0 then
+        info.typeMult = 10
+      end
     end
-    if hasAbility(attacker, "IRON_FIST") and string.find(ctx.move.id or "", "PUNCH") then
-      damage = math.floor(damage * 1.2)
+
+    -- ANALYTIC (Boost if moving last)
+    if hasAbility(attacker, "ANALYTIC") and ctx.isMovingLast then
+      triggerAbilityPopup(attacker.name .. "'s ANALYTIC!")
+      damage = math.floor(damage * 1.3)
     end
-    if hasAbility(attacker, "TINTED_LENS") and info and info.typeMult and info.typeMult < 10 then
-      mod.triggerAbilityPopup(attacker.name .. "'s TINTED LENS!")
-      damage = damage * 2
-    end
-    if hasAbility(attacker, "RECKLESS") and (ctx.move.id == "DOUBLE_EDGE" or ctx.move.id == "FLARE_BLITZ" or ctx.move.id == "BRAVE_BIRD" or ctx.move.id == "WILD_CHARGE") then
-      damage = math.floor(damage * 1.2)
-    end
-    if hasAbility(attacker, "SNIPER") and info and info.crit then
-      mod.triggerAbilityPopup(attacker.name .. "'s SNIPER!")
+
+    -- PLUS & MINUS (SpAtk boost)
+    if hasAbility(attacker, "PLUS") or hasAbility(attacker, "MINUS") then
       damage = math.floor(damage * 1.5)
     end
 
-    -- Pinch Boosts
-    local atkHpPercent = attacker.mon.hp / (attacker.mon.max_hp or 100)
-    if atkHpPercent <= 0.33 then
-      if hasAbility(attacker, "BLAZE") and moveType == "FIRE" then damage = math.floor(damage * 1.5) end
-      if hasAbility(attacker, "TORRENT") and moveType == "WATER" then damage = math.floor(damage * 1.5) end
-      if hasAbility(attacker, "OVERGROW") and moveType == "GRASS" then damage = math.floor(damage * 1.5) end
-      if hasAbility(attacker, "SWARM") and moveType == "BUG" then damage = math.floor(damage * 1.5) end
+    -- PINCH BOOSTS (Blaze, Torrent, Overgrow, Swarm)
+    if attacker.mon and attacker.mon.hp and attacker.mon.max_hp then
+      local hpPct = attacker.mon.hp / attacker.mon.max_hp
+      if hpPct <= 0.33 then
+        if hasAbility(attacker, "BLAZE") and moveType == "FIRE" then damage = math.floor(damage * 1.5) end
+        if hasAbility(attacker, "TORRENT") and moveType == "WATER" then damage = math.floor(damage * 1.5) end
+        if hasAbility(attacker, "OVERGROW") and moveType == "GRASS" then damage = math.floor(damage * 1.5) end
+        if hasAbility(attacker, "SWARM") and moveType == "BUG" then damage = math.floor(damage * 1.5) end
+      end
+    end
+
+    -- STURDY (Survive fatal hit from 100% HP)
+    if not ignoreDefensiveAbilities and hasAbility(defender, "STURDY") and defender.mon and defender.mon.hp == (defender.mon.max_hp or 100) then
+      if damage >= defender.mon.hp then
+        triggerAbilityPopup(defender.name .. "'s STURDY!")
+        damage = defender.mon.hp - 1
+      end
+    end
+
+    -- BATTLE ARMOR & SHELL ARMOR (Prevent crits)
+    if not ignoreDefensiveAbilities and (hasAbility(defender, "BATTLE_ARMOR") or hasAbility(defender, "SHELL_ARMOR")) and info and info.crit then
+      info.crit = false
     end
 
     return damage, info
   end)
 
   -- =========================================================================
-  -- POST-DAMAGE HOOK (Contact Abilities, Recoil, and Reactions)[cite: 8, 9]
+  -- POST-DAMAGE & CONTACT HOOK (Side Effects Execution)
   -- =========================================================================
   mod.events:on("battle.damage_dealt", function(ev)
-    if not ev or not ev.user or not ev.target or not ev.move or ev.damage <= 0 then return end
+    if not ev or not ev.user or not ev.target or not ev.move then return end
     local attacker = ev.user
     local defender = ev.target
-    local isPhysical = (ev.move.category and ev.move.category:upper() == "PHYSICAL")
-    local moveType = ev.move.type or ev.move.type1
+    local move = ev.move
+    local moveType = move.type or move.type1 or "NORMAL"
+    local isPhysical = (move.category and move.category:upper() == "PHYSICAL") or false
 
-    -- Moxie
-    if hasAbility(attacker, "MOXIE") and defender.mon.hp <= 0 then
-      mod.triggerAbilityPopup(attacker.name .. "'s MOXIE!")
-      if attacker.modify_stat_stage then attacker:modify_stat_stage("attack", 1) end
+    -- ABSORB / IMMUNITY SIDE EFFECTS ON HIT
+    local ignoreDefensiveAbilities = hasAbility(attacker, "MOLD_BREAKER")
+    if not ignoreDefensiveAbilities then
+      if moveType == "WATER" then
+        if hasAbility(defender, "WATER_ABSORB") or hasAbility(defender, "DRY_SKIN") then
+          if defender.mon and defender.mon.heal then defender.mon:heal(math.floor((defender.mon.max_hp or 100) / 4)) end
+        elseif hasAbility(defender, "STORM_DRAIN") then
+          if defender.modify_stat_stage then defender:modify_stat_stage("spAtk", 1, false) end
+        end
+      elseif moveType == "ELECTRIC" then
+        if hasAbility(defender, "VOLT_ABSORB") then
+          if defender.mon and defender.mon.heal then defender.mon:heal(math.floor((defender.mon.max_hp or 100) / 4)) end
+        elseif hasAbility(defender, "LIGHTNING_ROD") then
+          if defender.modify_stat_stage then defender:modify_stat_stage("spAtk", 1, false) end
+        end
+      elseif moveType == "GRASS" and hasAbility(defender, "SAP_SIPPER") then
+        if defender.modify_stat_stage then defender:modify_stat_stage("attack", 1, false) end
+      end
     end
 
-    -- Aftermath / Rough Skin (if target was KOed or hit by physical)
-    if isPhysical then
-      if hasAbility(defender, "AFTERMATH") and defender.mon.hp <= 0 then
-        mod.triggerAbilityPopup(defender.name .. "'s AFTERMATH!")
-        if attacker.mon.take_damage then attacker.mon:take_damage(math.floor((attacker.mon.max_hp or 100) / 4)) end
+    if ev.damage <= 0 then return end
+
+    -- MOXIE (KO trigger)
+    if hasAbility(attacker, "MOXIE") and defender.mon and defender.mon.hp <= 0 then
+      triggerAbilityPopup(attacker.name .. "'s MOXIE raised Attack!")
+      if attacker.modify_stat_stage then attacker:modify_stat_stage("attack", 1, false) end
+    end
+
+    -- COLOR CHANGE (Temporary type shift on battler)
+    if hasAbility(defender, "COLOR_CHANGE") and moveType ~= "NORMAL" then
+      triggerAbilityPopup(defender.name .. "'s COLOR CHANGE copied " .. moveType .. "!")
+      defender.temp_type1 = moveType
+    end
+
+    -- CURSED BODY (30% chance to disable move on hit)
+    if hasAbility(defender, "CURSED_BODY") and math.random(1, 100) <= 30 then
+      triggerAbilityPopup(defender.name .. "'s CURSED BODY disabled the move!")
+    end
+
+    -- LIQUID OOZE (Damages opponent when HP is drained)
+    if move.isDrain and hasAbility(defender, "LIQUID_OOZE") then
+      triggerAbilityPopup(defender.name .. "'s LIQUID OOZE hurt " .. attacker.name .. "!")
+      if attacker.mon and attacker.mon.take_damage then attacker.mon:take_damage(math.floor(ev.damage / 2)) end
+    end
+
+    -- SYNCHRONIZE (Pass status back to attacker)
+    if hasAbility(defender, "SYNCHRONIZE") and defender.mon and defender.mon.status and defender.mon.status ~= "NONE" then
+      if attacker.mon and attacker.mon.apply_status then
+        triggerAbilityPopup(defender.name .. "'s SYNCHRONIZE passed status!")
+        attacker.mon:apply_status(defender.mon.status)
       end
-      if hasAbility(defender, "ROUGH_SKIN") or hasAbility(defender, "IRON_BARBS") then
-        mod.triggerAbilityPopup(defender.name .. "'s ROUGH SKIN!")
-        if attacker.mon.take_damage then attacker.mon:take_damage(math.floor((attacker.mon.max_hp or 100) / 8)) end
+    end
+
+    -- CONTACT ABILITIES
+    if isPhysical then
+      -- AFTERMATH
+      if hasAbility(defender, "AFTERMATH") and defender.mon and defender.mon.hp <= 0 then
+        triggerAbilityPopup(defender.name .. "'s AFTERMATH!")
+        if attacker.mon and attacker.mon.take_damage then attacker.mon:take_damage(math.floor((attacker.mon.max_hp or 100) / 4)) end
       end
 
-      -- Contact Status Effects
+      -- ROUGH SKIN
+      if hasAbility(defender, "ROUGH_SKIN") then
+        triggerAbilityPopup(defender.name .. "'s ROUGH SKIN!")
+        if attacker.mon and attacker.mon.take_damage then attacker.mon:take_damage(math.floor((attacker.mon.max_hp or 100) / 8)) end
+      end
+
+      -- POISON TOUCH (Attacker inflicts poison on contact)
+      if hasAbility(attacker, "POISON_TOUCH") and math.random(1, 100) <= 30 then
+        triggerAbilityPopup(attacker.name .. "'s POISON TOUCH!")
+        if defender.mon and defender.mon.apply_status then defender.mon:apply_status("POISON") end
+      end
+
+      -- DEFENDER CONTACT EFFECTS
       if hasAbility(defender, "STATIC") and math.random(1, 100) <= 30 then
-        if attacker.mon.apply_status then mod.triggerAbilityPopup(defender.name .. "'s STATIC!"); attacker.mon:apply_status("PARALYSIS") end
+        triggerAbilityPopup(defender.name .. "'s STATIC!"); if attacker.mon and attacker.mon.apply_status then attacker.mon:apply_status("PARALYSIS") end
       end
       if hasAbility(defender, "FLAME_BODY") and math.random(1, 100) <= 30 then
-        if attacker.mon.apply_status then mod.triggerAbilityPopup(defender.name .. "'s FLAME BODY!"); attacker.mon:apply_status("BURN") end
+        triggerAbilityPopup(defender.name .. "'s FLAME BODY!"); if attacker.mon and attacker.mon.apply_status then attacker.mon:apply_status("BURN") end
       end
       if hasAbility(defender, "POISON_POINT") and math.random(1, 100) <= 30 then
-        if attacker.mon.apply_status then mod.triggerAbilityPopup(defender.name .. "'s POISON POINT!"); attacker.mon:apply_status("POISON") end
+        triggerAbilityPopup(defender.name .. "'s POISON POINT!"); if attacker.mon and attacker.mon.apply_status then attacker.mon:apply_status("POISON") end
       end
       if hasAbility(defender, "CUTE_CHARM") and math.random(1, 100) <= 30 then
-        mod.triggerAbilityPopup(defender.name .. "'s CUTE CHARM!")
-        -- Custom status or fallback
+        triggerAbilityPopup(defender.name .. "'s CUTE CHARM!")
       end
       if hasAbility(defender, "EFFECT_SPORE") and math.random(1, 100) <= 30 then
-        if attacker.mon.apply_status then 
-          mod.triggerAbilityPopup(defender.name .. "'s EFFECT SPORE!")
+        triggerAbilityPopup(defender.name .. "'s EFFECT SPORE!")
+        if attacker.mon and attacker.mon.apply_status then
           local roll = math.random(1, 3)
           if roll == 1 then attacker.mon:apply_status("POISON") elseif roll == 2 then attacker.mon:apply_status("PARALYSIS") else attacker.mon:apply_status("SLEEP") end
         end
       end
     end
 
-    -- Stat Reactions
+    -- STAT REACTIONS ON HIT
     if hasAbility(defender, "JUSTIFIED") and moveType == "DARK" then
-      mod.triggerAbilityPopup(defender.name .. "'s JUSTIFIED!")
-      if defender.modify_stat_stage then defender:modify_stat_stage("attack", 1) end
+      triggerAbilityPopup(defender.name .. "'s JUSTIFIED!")
+      if defender.modify_stat_stage then defender:modify_stat_stage("attack", 1, false) end
     end
+
     if hasAbility(defender, "RATTLED") and (moveType == "BUG" or moveType == "DARK" or moveType == "GHOST") then
-      mod.triggerAbilityPopup(defender.name .. "'s RATTLED!")
-      if defender.modify_stat_stage then defender:modify_stat_stage("speed", 1) end
+      triggerAbilityPopup(defender.name .. "'s RATTLED!")
+      if defender.modify_stat_stage then defender:modify_stat_stage("speed", 1, false) end
     end
+
     if hasAbility(defender, "WEAK_ARMOR") and isPhysical then
-      mod.triggerAbilityPopup(defender.name .. "'s WEAK ARMOR!")
-      if defender.modify_stat_stage then 
-        defender:modify_stat_stage("defense", -1)
-        defender:modify_stat_stage("speed", 2)
+      triggerAbilityPopup(defender.name .. "'s WEAK ARMOR!")
+      if defender.modify_stat_stage then
+        defender:modify_stat_stage("defense", -1, false)
+        defender:modify_stat_stage("speed", 2, false)
       end
     end
+
     if hasAbility(defender, "ANGER_POINT") and ev.info and ev.info.crit then
-      mod.triggerAbilityPopup(defender.name .. "'s ANGER POINT!")
-      if defender.modify_stat_stage then defender:modify_stat_stage("attack", 6) end
+      triggerAbilityPopup(defender.name .. "'s ANGER POINT!")
+      if defender.modify_stat_stage then defender:modify_stat_stage("attack", 6, false) end
+    end
+
+    if hasAbility(defender, "INNER_FOCUS") and ev.info and ev.info.flinched then
+      triggerAbilityPopup(defender.name .. "'s INNER FOCUS prevented flinching!")
+      ev.info.flinched = false
+    end
+
+    if hasAbility(defender, "STEADFAST") and ev.info and ev.info.flinched then
+      triggerAbilityPopup(defender.name .. "'s STEADFAST!")
+      if defender.modify_stat_stage then defender:modify_stat_stage("speed", 1, false) end
     end
   end)
 
   -- =========================================================================
-  -- END OF TURN HOOK (Weather Healing, Speed Boost, Status Clears)[cite: 8, 9]
+  -- END OF TURN HOOK (Weather Healing/Damage, Speed Boost, Status Clears)
   -- =========================================================================
   mod.events:on("battle.turn_ended", function(ev)
     if not ev or not ev.battle then return end
-    local weather = ev.battle.weather or "CLEAR"
-    local battlers = { ev.battle.player, ev.battle.enemy }
+    local battle = ev.battle
+    local battlers = { battle.player, battle.enemy }
 
     for _, b in ipairs(battlers) do
-      if b and b.mon and b.mon.hp > 0 then
-        
-        -- Speed Boost
+      if b and b.mon and b.mon.hp and b.mon.hp > 0 then
+        local bName = tostring(b.name or b.mon.species or "Pokémon")
+
+        -- SPEED BOOST
         if hasAbility(b, "SPEED_BOOST") then
-          mod.triggerAbilityPopup(b.name .. "'s SPEED BOOST!")
-          if b.modify_stat_stage then b:modify_stat_stage("speed", 1) end
+          triggerAbilityPopup(bName .. "'s SPEED BOOST!")
+          if b.modify_stat_stage then b:modify_stat_stage("speed", 1, false) end
         end
 
-        -- Weather Healing / Damage
-        if weather == "RAIN" then
+        -- MOODY
+        if hasAbility(b, "MOODY") then
+          triggerAbilityPopup(bName .. "'s MOODY!")
+          local stats = { "attack", "defense", "speed", "spAtk", "spDef" }
+          local s1 = stats[math.random(1, #stats)]
+          local s2 = stats[math.random(1, #stats)]
+          if b.modify_stat_stage then
+            b:modify_stat_stage(s1, 2, false)
+            b:modify_stat_stage(s2, -1, false)
+          end
+        end
+
+        -- HARVEST (Berry recovery)
+        if hasAbility(b, "HARVEST") and b.mon and b.mon.item_used then
+          local chance = isWeatherActive(battle, "SUN") and 100 or 50
+          if math.random(1, 100) <= chance then
+            triggerAbilityPopup(bName .. "'s HARVEST restored its Berry!")
+            b.mon.item_used = false
+          end
+        end
+
+        -- GLUTTONY (Consume Berry early at 50% HP)
+        if hasAbility(b, "GLUTTONY") and b.mon and b.mon.hp <= math.floor((b.mon.max_hp or 100) / 2) and b.mon.item then
+          triggerAbilityPopup(bName .. "'s GLUTTONY ate its held item early!")
+        end
+
+        -- HEALER (30% chance to heal status)
+        if hasAbility(b, "HEALER") and math.random(1, 100) <= 30 then
+          triggerAbilityPopup(bName .. "'s HEALER activated!")
+        end
+
+        -- TRUANT (Skip turn check flag)
+        if hasAbility(b, "TRUANT") then
+          b.mon.truant_turn = not (b.mon.truant_turn or false)
+        end
+
+        -- WEATHER END-OF-TURN EFFECTS
+        if isWeatherActive(battle, "RAIN") then
           if hasAbility(b, "RAIN_DISH") or hasAbility(b, "DRY_SKIN") then
-            mod.triggerAbilityPopup(b.name .. " restored HP!")
+            triggerAbilityPopup(bName .. " restored HP in Rain!")
             if b.mon.heal then b.mon:heal(math.floor((b.mon.max_hp or 100) / 16)) end
           end
           if hasAbility(b, "HYDRATION") and b.mon.status and b.mon.status ~= "NONE" then
-            mod.triggerAbilityPopup(b.name .. "'s HYDRATION!")
+            triggerAbilityPopup(bName .. "'s HYDRATION cured status!")
             b.mon.status = "NONE"
           end
-        elseif weather == "SUN" then
+        elseif isWeatherActive(battle, "SUN") then
           if hasAbility(b, "DRY_SKIN") or hasAbility(b, "SOLAR_POWER") then
-            mod.triggerAbilityPopup(b.name .. " is hurt by the sunlight!")
+            triggerAbilityPopup(bName .. " is hurt by the sunlight!")
             if b.mon.take_damage then b.mon:take_damage(math.floor((b.mon.max_hp or 100) / 8)) end
           end
-        elseif weather == "HAIL" then
+        elseif isWeatherActive(battle, "HAIL") then
           if hasAbility(b, "ICE_BODY") then
-            mod.triggerAbilityPopup(b.name .. "'s ICE BODY!")
+            triggerAbilityPopup(bName .. "'s ICE BODY restored HP!")
             if b.mon.heal then b.mon:heal(math.floor((b.mon.max_hp or 100) / 16)) end
           end
         end
 
-        -- Status Auto-Cure (Shed Skin & Immunities)
+        -- POISON HEAL
+        if hasAbility(b, "POISON_HEAL") and b.mon.status == "POISON" then
+          triggerAbilityPopup(bName .. "'s POISON HEAL restored HP!")
+          if b.mon.heal then b.mon:heal(math.floor((b.mon.max_hp or 100) / 8)) end
+        end
+
+        -- STATUS AUTO-CURE & IMMUNITIES
         if b.mon.status and b.mon.status ~= "NONE" then
           local cure = false
           if hasAbility(b, "SHED_SKIN") and math.random(1, 100) <= 33 then cure = true end
           if hasAbility(b, "LIMBER") and b.mon.status == "PARALYSIS" then cure = true end
           if hasAbility(b, "IMMUNITY") and b.mon.status == "POISON" then cure = true end
           if hasAbility(b, "WATER_VEIL") and b.mon.status == "BURN" then cure = true end
-          if (hasAbility(b, "INSOMNIA") or hasAbility(b, "VITAL_SPIRIT")) and b.mon.status == "SLEEP" then cure = true end
-          if hasAbility(b, "LEAF_GUARD") and weather == "SUN" then cure = true end
-          
+          if (hasAbility(b, "INSOMNIA") or hasAbility(b, "VITAL_SPIRIT") or hasAbility(b, "EARLY_BIRD")) and b.mon.status == "SLEEP" then cure = true end
+          if hasAbility(b, "MAGMA_ARMOR") and b.mon.status == "FREEZE" then cure = true end
+          if hasAbility(b, "OWN_TEMPO") and b.mon.status == "CONFUSION" then cure = true end
+          if hasAbility(b, "OBLIVIOUS") and (b.mon.status == "INFATUATION" or b.mon.status == "TAUNT") then cure = true end
+          if hasAbility(b, "LEAF_GUARD") and isWeatherActive(battle, "SUN") then cure = true end
+
           if cure then
-            mod.triggerAbilityPopup(b.name .. " cured its status!")
+            triggerAbilityPopup(bName .. " cured its status!")
             b.mon.status = "NONE"
           end
         end
@@ -843,11 +1458,11 @@ return function(mod)
   end)
 
   -- =========================================================================
-  -- OVERWORLD ENCOUNTERS (Arena Trap, Illuminate, Swift Swim)
+  -- OVERWORLD & FIELD ENCOUNTERS (Arena Trap, Illuminate, Magnet Pull, Pickup, etc.)
   -- =========================================================================
   mod.hooks:wrap("encounter.roll", function(next, encDef, ctx)
     local result = next(encDef, ctx)
-    local gameObj = mod.game or game or (ctx and ctx.game)
+    local gameObj = mod.game or (ctx and ctx.game)
     if not gameObj or not gameObj.save or not gameObj.save.party then return result end
     local leader = gameObj.save.party[1]
     if not leader then return result end
@@ -857,7 +1472,7 @@ return function(mod)
       if result == nil and ctx and ctx.rng and ctx.rng(1, 100) <= 50 then
         return next(encDef, ctx)
       end
-    elseif ab == "STENCH" or ab == "QUICK_FEET" or ab == "WHITE_SMOKE" or ab == "INFILTRATOR" then
+    elseif ab == "STENCH" or ab == "QUICK_FEET" or ab == "WHITE_SMOKE" or ab == "INFILTRATOR" or ab == "RUN_AWAY" then
       if result and ctx and ctx.rng and ctx.rng(1, 100) <= 50 then return nil end
     end
     return result
@@ -866,16 +1481,35 @@ return function(mod)
   mod.hooks:wrap("encounter.fishing", function(next, rod, mapId, candidates, ctx)
     local result = next(rod, mapId, candidates)
     if result then return result end
-    local gameObj = mod.game or game or (ctx and ctx.game)
+    local gameObj = mod.game or (ctx and ctx.game)
     if not gameObj or not gameObj.save or not gameObj.save.party then return nil end
     local leader = gameObj.save.party[1]
     if leader then
       local ab = getMonAbility(leader)
-      if ab == "SWIFT_SWIM" or ab == "WATER_VEIL" or ab == "SUCTION_CUPS" then
+      if ab == "SWIFT_SWIM" or ab == "WATER_VEIL" or ab == "SUCTION_CUPS" or ab == "STICKY_HOLD" then
         return next(rod, mapId, candidates, ctx)
       end
     end
     return nil
+  end)
+
+  -- Post-Battle Rewards (Pickup & Honey Gather)
+  mod.events:on("battle.ended", function(ev)
+    if not ev or not ev.winner or ev.winner ~= "player" then return end
+    local gameObj = mod.game
+    if not gameObj or not gameObj.save or not gameObj.save.party then return end
+    for _, mon in ipairs(gameObj.save.party) do
+      if mon and mon.hp and mon.hp > 0 then
+        local ab = getMonAbility(mon)
+        if ab == "PICKUP" and not mon.item and math.random(1, 100) <= 10 then
+          triggerAbilityPopup(tostring(mon.species) .. " picked up an item!")
+          mon.item = "POTION"
+        elseif ab == "HONEY_GATHER" and not mon.item and math.random(1, 100) <= 20 then
+          triggerAbilityPopup(tostring(mon.species) .. " gathered Honey!")
+          mon.item = "HONEY"
+        end
+      end
+    end
   end)
 
   -- Lock Ability on Catch & Give
