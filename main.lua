@@ -95,17 +95,33 @@ return function(mod)
     return out
   end
 
-  -- MOVES SCHEMA NORMALIZER
+-- MOVES SCHEMA NORMALIZER
   local function normalizeMoveData(id, data)
     if type(data) ~= "table" then return data end
     local out = {}
     for k, v in pairs(data) do
       if k == "description" then
         mod.MOVE_DESCRIPTIONS[id] = v
+      elseif k == "category" then
+        -- The schema strictly requires lowercase "physical", "special", or "status"
+        -- This converts your uppercase definitions into valid schema shapes automatically.
+        if type(v) == "string" then
+          out[k] = string.lower(v)
+        else
+          out[k] = v
+        end
       elseif k ~= "effect_data" then
         out[k] = v
       end
     end
+    
+    -- The 'effect' field is strictly REQUIRED by the Gen1Recomp schema.
+    if not out.effect then
+      out.effect = "MOD_DUMMY_EFFECT"
+    end
+    
+    return out
+  end
     
     -- The 'effect' field is strictly REQUIRED by the Gen1Recomp schema[cite: 9].
     -- Because it was missing, all 212 moves failed validation and were dropped!
