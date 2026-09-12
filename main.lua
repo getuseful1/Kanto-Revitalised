@@ -41,7 +41,33 @@ return function(mod)
 
   -- Helper function to safely require and execute submodules
   local function loadModule(name)
+    if mod and mod.path and type(mod.path) == "string" then
+      local pattern = mod.path .. "/?.lua;" .. mod.path .. "/?/init.lua"
+      if not package.path:find(pattern, 1, true) then
+        package.path = pattern .. ";" .. package.path
+      end
+    end
+
     local status, fn = pcall(require, name)
+    if not (status and type(fn) == "function") then
+      local pathsToTry = {
+        name .. ".lua",
+        name
+      }
+      if mod and mod.path then
+        table.insert(pathsToTry, 1, mod.path .. "/" .. name .. ".lua")
+        table.insert(pathsToTry, 2, mod.path .. "/" .. name)
+      end
+      for _, path in ipairs(pathsToTry) do
+        local loaded, err = loadfile(path)
+        if loaded and type(loaded) == "function" then
+          status = true
+          fn = loaded
+          break
+        end
+      end
+    end
+
     if status and type(fn) == "function" then
       local runStatus, err = pcall(fn, mod)
       if runStatus then
