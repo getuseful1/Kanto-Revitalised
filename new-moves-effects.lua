@@ -6,7 +6,7 @@
 -- ============================================================================
 
 return function(mod)
-  if not mod or not mod.hooks or not mod.events or not mod.content or not mod.content.moves then
+  if not mod or not mod.hooks or not mod.events then
     error("new-moves-effects.lua requires a valid gen1recomp mod object!")
   end
 
@@ -230,7 +230,6 @@ return function(mod)
   MOVE_EFFECTS["ZAP_CANNON"] = { standard_effect = true }
   MOVE_EFFECTS["ZEN_HEADBUTT"] = { flinch_chance = 20 }
 
-  
   MOVE_EFFECTS["HIGH_JUMP_KICK"] = { standard_effect = true }
   MOVE_EFFECTS["ERUPTION"] = { standard_effect = true }
   MOVE_EFFECTS["DRAIN_PUNCH"] = { drain_percent = 50 }
@@ -275,11 +274,9 @@ return function(mod)
   -- =========================================================================
   -- 2. APPLY MOVE EFFECTS & HOOK BATTLE EXECUTION
   -- =========================================================================
-  for move_id, effect_data in pairs(MOVE_EFFECTS) do
-    mod.content.moves:patch(move_id, {
-      effect_data = effect_data
-    })
-  end
+  
+  -- Store custom move effects globally instead of patching them into the strict schema[cite: 1, 4]
+  mod.CUSTOM_MOVE_EFFECTS = MOVE_EFFECTS
 
   -- Wrap move execution to trigger move effects dynamically
   mod.hooks:wrap("battle.move_execute", function(orig_fn, ctx)
@@ -288,7 +285,7 @@ return function(mod)
     end
 
     local move_id = ctx.move.id
-    local effect = MOVE_EFFECTS[move_id]
+    local effect = mod.CUSTOM_MOVE_EFFECTS[move_id]
 
     if not effect then
       return orig_fn(ctx)
@@ -453,5 +450,5 @@ return function(mod)
     return result
   end)
 
-  print("Successfully loaded New Moves Effects Engine for 212 moves!")
+  mod.log:info("Successfully loaded New Moves Effects Engine for 212 moves!")
 end
