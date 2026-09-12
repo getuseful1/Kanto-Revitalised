@@ -50,15 +50,19 @@ return function(mod)
 
     local status, fn = pcall(require, name)
 
-    -- If fn is a function returned by require, execute it with mod if needed
-    if status and type(fn) == "function" then
-      local runStatus, err = pcall(fn, mod)
-      if runStatus then
-        mod.log:info("Kanto Revitalised: Successfully loaded module '" .. name .. "'")
-        return true
+    if status then
+      if type(fn) == "function" then
+        local runStatus, err = pcall(fn, mod)
+        if runStatus then
+          mod.log:info("Kanto Revitalised: Successfully loaded module '" .. name .. "'")
+          return true
+        else
+          mod.log:error("Kanto Revitalised: Error executing module '" .. name .. "': " .. tostring(err))
+          return false
+        end
       else
-        mod.log:error("Kanto Revitalised: Error executing module '" .. name .. "': " .. tostring(err))
-        return false
+        mod.log:info("Kanto Revitalised: Successfully loaded module '" .. name .. "' (non-function export)")
+        return true
       end
     end
 
@@ -104,7 +108,7 @@ return function(mod)
 
   mod.loadModule = loadModule
 
-  -- Normalize Pokémon data structures to support all Gen1Recomp API key aliases for types and learnsets
+  -- Normalize Pokémon data structures to support all Gen1Recomp API key aliases for types, baseStats and learnsets
   local function normalizePokemonData(data)
     if not data or type(data) ~= "table" then return data end
 
@@ -126,10 +130,22 @@ return function(mod)
       if tList[2] then data.type2 = tList[2] else data.type2 = tList[1] end
     end
 
-    -- Learnset normalization (learnset, moves, levelUpMoves, level_up_moves)
-    local lset = data.learnset or data.moves or data.levelUpMoves or data.level_up_moves
+    -- BaseStats normalization (Gen 1 Special vs Gen 2 SpecialAttack / SpecialDefense / spAtk / spDef)
+    if data.baseStats and type(data.baseStats) == "table" then
+      local bs = data.baseStats
+      local spec = bs.special or bs.spAtk or bs.specialAttack or 50
+      bs.special = spec
+      bs.spAtk = bs.spAtk or bs.specialAttack or spec
+      bs.spDef = bs.spDef or bs.specialDefense or spec
+      bs.specialAttack = bs.specialAttack or bs.spAtk
+      bs.specialDefense = bs.specialDefense or bs.spDef
+    end
+
+    -- Learnset normalization (learnset, moves, levelUpMoves, level_up_moves, levelMoves, level1Moves)
+    local lset = data.learnset or data.moves or data.levelUpMoves or data.level_up_moves or data.levelMoves
     if lset and type(lset) == "table" then
       local normalizedLset = {}
+      local lvl1Moves = data.level1Moves or {}
       for k, entry in pairs(lset) do
         if type(entry) == "table" then
           local lvl = entry.level or entry.lvl
@@ -151,6 +167,9 @@ return function(mod)
               [1] = lvl,
               [2] = mv
             })
+            if lvl == 1 then
+              table.insert(lvl1Moves, mv)
+            end
           end
         elseif type(k) == "number" and type(entry) == "string" then
           table.insert(normalizedLset, {
@@ -161,6 +180,9 @@ return function(mod)
             [1] = k,
             [2] = entry
           })
+          if k == 1 then
+            table.insert(lvl1Moves, entry)
+          end
         end
       end
 
@@ -170,6 +192,8 @@ return function(mod)
       data.moves = normalizedLset
       data.levelUpMoves = normalizedLset
       data.level_up_moves = normalizedLset
+      data.levelMoves = normalizedLset
+      data.level1Moves = lvl1Moves
     end
 
     return data
@@ -178,15 +202,28 @@ return function(mod)
   if mod.content and mod.content.pokemon then
     local origPatch = mod.content.pokemon.patch
     if origPatch then
-      mod.content.pokemon.patch = function(self, id, data)
-        return origPatch(self, id, normalizePokemonData(data))
+      mod.content.pokemon.patch = function(self, id, dataOrKey, value, ...)
+        if value ~= nil then
+          if type(value) == "table" then
+            value = normalizePokemonData(value)
+          end
+          return origPatch(self, id, dataOrKey, value, ...)
+        elseif type(dataOrKey) == "table" then
+          return origPatch(self, id, normalizePokemonData(dataOrKey), ...)
+        else
+          return origPatch(self, id, dataOrKey, ...)
+        end
       end
     end
 
     local origRegister = mod.content.pokemon.register
     if origRegister then
-      mod.content.pokemon.register = function(self, id, data)
-        return origRegister(self, id, normalizePokemonData(data))
+      mod.content.pokemon.register = function(self, id, data, ...)
+        if type(data) == "table" then
+          return origRegister(self, id, normalizePokemonData(data), ...)
+        else
+          return origRegister(self, id, data, ...)
+        end
       end
     end
   end
