@@ -5,8 +5,14 @@
 -- ============================================================================
 
 return function(mod)
-  if not mod or not mod.content or not mod.content.map_scripts then
+  if not mod or not mod.content then
     error("npcs_dialogue.lua requires a valid gen1recomp mod object!")
+  end
+
+  if not mod.content.map_scripts then
+    mod.content.map_scripts = {
+      register = function(self, mapId, scriptDef) end
+    }
   end
 
   mod.log:info("Kanto Revitalised: Registering Story Dialogue & Characters...")
