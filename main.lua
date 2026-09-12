@@ -13,30 +13,39 @@ return function(mod)
     { key = "sprite_source", type = "choice", label = "POKEMON SPRITE SOURCE", options = { { label = "Mod Sprites", value = "mod" }, { label = "ROM Sprites", value = "rom" } }, default = "mod" }
   })
 
-  -- Store custom abilities safely outside the engine registry
+  -- 1. PREVENT DANGLING REFERENCE CASCADE
+  -- Register modern types so new moves and species typings do not fail validation.
+  if mod.content and mod.content.type_chart then
+    -- Using patch ensures we don't crash if another mod already registered them
+    pcall(function() mod.content.type_chart:register("DARK", { name = "DARK" }) end)
+    pcall(function() mod.content.type_chart:register("STEEL", { name = "STEEL" }) end)
+    pcall(function() mod.content.type_chart:register("FAIRY", { name = "FAIRY" }) end)
+  end
+
+  -- Global table to store abilities so they aren't erased by the engine schema
   mod.CUSTOM_ABILITIES = mod.CUSTOM_ABILITIES or {}
 
-  -- Detect booting generation to shape records perfectly[cite: 1]
-  local isGen2 = pcall(function()
-    mod.content.pokemon:patch("BULBASAUR", { levelMoves = {} })
-  end)
+  -- Non-destructive check for Gen 2 routing[cite: 1]
+  local isGen2 = false
+  local checkBulba = pcall(function() return mod.content.pokemon:get("BULBASAUR").levelMoves end)
+  if checkBulba then isGen2 = true end
 
+  -- 2. SCHEMA NORMALIZER
   local function normalizePokemonData(id, data)
     if type(data) ~= "table" then return data end
     local out = {}
 
+    -- Strip custom and alias keys that trigger typo validation[cite: 1]
     for k, v in pairs(data) do
-      if k ~= "abilities" and k ~= "spAtk" and k ~= "spDef" and k ~= "type" and k ~= "moves" then
+      if k ~= "abilities" and k ~= "spAtk" and k ~= "spDef" and k ~= "type" and k ~= "moves" and k ~= "level1Moves" and k ~= "learnset" and k ~= "levelMoves" then
         out[k] = v
       end
     end
 
-    -- 1. Safely extract abilities before they cause schema validation crashes[cite: 1]
     if data.abilities then
       mod.CUSTOM_ABILITIES[id] = data.abilities
     end
 
-    -- 2. Format BaseStats for Gen 1 vs Gen 2[cite: 1]
     if data.baseStats and type(data.baseStats) == "table" then
       local bs = {}
       for k, v in pairs(data.baseStats) do
@@ -57,7 +66,7 @@ return function(mod)
       out.baseStats = bs
     end
 
-    -- 3. Format Learnset vs LevelMoves[cite: 1]
+    -- Split learnsets correctly for Gen 1 (requires level1Moves) vs Gen 2[cite: 7]
     local rawLearnset = data.learnset or data.levelMoves
     if rawLearnset and type(rawLearnset) == "table" then
       local cleanLearnset = {}
@@ -83,19 +92,16 @@ return function(mod)
       
       if isGen2 then
         out.levelMoves = cleanLearnset
-        out.learnset = nil
-        out.level1Moves = nil
       else
-        out.learnset = cleanLearnset
-        out.level1Moves = lvl1Moves
-        out.levelMoves = nil
+        if #cleanLearnset > 0 then out.learnset = cleanLearnset end
+        if #lvl1Moves > 0 then out.level1Moves = lvl1Moves end
       end
     end
 
     return out
   end
 
-  -- Hook engine registry calls to apply formatting dynamically
+  -- Intercept Engine Registry calls
   if mod.content and mod.content.pokemon then
     local origPatch = mod.content.pokemon.patch
     mod.content.pokemon.patch = function(self, id, partial, ...)
@@ -114,18 +120,25 @@ return function(mod)
     end
   end
 
-  -- Safe Module Loader
+  -- 3. SAFE MODULE LOADER WITH ERROR REPORTING
   local function loadModule(name)
     local status, fn = pcall(require, name)
     if status and type(fn) == "function" then
-      pcall(fn, mod)
+      local ok, err = pcall(fn, mod)
+      if not ok then mod.log:error("Error in " .. name .. ": " .. tostring(err)) end
       return true
     end
+    
     local path = mod.path and (mod.path .. "/" .. name .. ".lua") or (name .. ".lua")
-    local chunk = loadfile(path)
+    local chunk, loadErr = loadfile(path)
     if chunk then
       local ok, inner = pcall(chunk)
-      if ok and type(inner) == "function" then pcall(inner, mod) end
+      if ok and type(inner) == "function" then 
+        local ok2, err2 = pcall(inner, mod)
+        if not ok2 then mod.log:error("Error in " .. path .. ": " .. tostring(err2)) end
+      end
+    else
+      mod.log:error("Failed to load " .. path .. ": " .. tostring(loadErr))
     end
   end
   mod.loadModule = loadModule
