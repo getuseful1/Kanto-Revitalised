@@ -11,7 +11,6 @@ return function(mod)
 
   mod.log:info("Kanto Revitalised: Initializing UI & Sprite Selection Enhancements...")
 
-  -- 1. Mod Options for UI Customization
   mod.options:define({
     { key = "show_party_ability_menu", type = "toggle", label = "SHOW ABILITY IN PARTY MENU", default = true },
     { key = "show_battle_weather_hud", type = "toggle", label = "SHOW BATTLE WEATHER HUD", default = true },
@@ -30,8 +29,18 @@ return function(mod)
     items = next(game, items, mon, ctx) or items
     if not items or not mon then return items end
 
+    -- Deduplication: check if our custom buttons already exist in the items array
+    local hasAbilityOption = false
+    local hasHeldItemOption = false
+    for _, item in ipairs(items) do
+      if type(item) == "table" and type(item.label) == "string" then
+        if item.label:sub(1, 8) == "ABILITY:" then hasAbilityOption = true end
+        if item.label == "HELD ITEM" then hasHeldItemOption = true end
+      end
+    end
+
     -- INJECT ABILITY BUTTON
-    if mod.options:get("show_party_ability_menu") then
+    if mod.options:get("show_party_ability_menu") and not hasAbilityOption then
       local rawAbility = mod.getMonAbility and mod.getMonAbility(mon)
       local hasAbilityVal = rawAbility and rawAbility ~= "" and rawAbility:upper() ~= "NONE"
       local abilityName = hasAbilityVal and rawAbility:upper() or "N/A"
@@ -57,44 +66,60 @@ return function(mod)
     end
 
     -- INJECT HELD ITEM BUTTON
-    local heldItemOption = {
-      label = "HELD ITEM",
-      onSelect = function()
-        local currentGame = game or (ctx and ctx.game)
-        if currentGame and currentGame.stack and currentGame.stack.push and mod.content.screens then
-          -- Push the custom action screen defined below[cite: 5, 10]
-          local screen = mod.content.screens:get("HeldItemActionScreen", currentGame, mon)
-          if screen then
-            currentGame.stack:push(screen)
+    if not hasHeldItemOption then
+      local heldItemOption = {
+        label = "HELD ITEM",
+        onSelect = function()
+          local currentGame = game or (ctx and ctx.game)
+          if currentGame and currentGame.stack and currentGame.stack.push and mod.content.screens then
+            -- Push the custom action screen defined below
+            local screen = mod.content.screens:get("HeldItemActionScreen", currentGame, mon)
+            if screen then
+              currentGame.stack:push(screen)
+            end
           end
         end
-      end
-    }
+      }
 
-    if mod.ui and mod.ui.insertBefore then
-      mod.ui.insertBefore(items, "CANCEL", heldItemOption)
-    else
-      table.insert(items, heldItemOption)
+      if mod.ui and mod.ui.insertBefore then
+        mod.ui.insertBefore(items, "CANCEL", heldItemOption)
+      else
+        table.insert(items, heldItemOption)
+      end
     end
 
     return items
   end, 100)
 
   -- =========================================================================
-  -- 3. Battle Overlay Hook (Compatible with Voxel Viewports)
+  -- 3. Battle Overlay Hook (Weather HUD + Ability Popups)
   -- =========================================================================
   mod.hooks:wrap("battle.overlay", function(next, battle)
     next(battle)
-    if not battle or not mod.options:get("show_battle_weather_hud") then return end
-    if battle.status_hud_visible == false or battle.bottom_ui_visible == false then return end
+    if not battle then return end
 
-    local weather = battle.weather or "CLEAR"
-    if weather ~= "CLEAR" then
-      local turns = battle.weather_turns or 0
-      local weatherText = weather .. " [" .. tostring(turns) .. "t]"
-      if mod.ui and mod.ui.Font and mod.ui.Font.draw then
-        mod.ui.Font.draw(weatherText, 108, 4)
+    -- Draw Weather HUD
+    if mod.options:get("show_battle_weather_hud") and battle.status_hud_visible ~= false and battle.bottom_ui_visible ~= false then
+      local weather = battle.weather or "CLEAR"
+      if weather ~= "CLEAR" then
+        local turns = battle.weather_turns or 0
+        local weatherText = weather .. " [" .. tostring(turns) .. "t]"
+        if mod.ui and mod.ui.Font and mod.ui.Font.draw then
+          mod.ui.Font.draw(weatherText, 108, 4)
+        end
       end
+    end
+
+    -- Draw Ability Popup (Triggered from abilities.lua)
+    if mod.BATTLE_POPUP_TEXT and mod.BATTLE_POPUP_TIMER > 0 then
+      if mod.ui and mod.ui.Font then
+        -- Draw a small banner box in the middle of the screen
+        mod.ui.Font.drawBox(1, 6, 18, 5) 
+        mod.ui.Font.draw(mod.BATTLE_POPUP_TEXT, 16, 56)
+      end
+      mod.BATTLE_POPUP_TIMER = mod.BATTLE_POPUP_TIMER - 1
+    elseif mod.BATTLE_POPUP_TIMER and mod.BATTLE_POPUP_TIMER <= 0 then
+      mod.BATTLE_POPUP_TEXT = nil
     end
   end, 100)
 
@@ -144,7 +169,7 @@ return function(mod)
   end, 100)
 
   -- =========================================================================
-  -- 5. Custom UI Screens (Registered to Engine Stack)[cite: 5, 10]
+  -- 5. Custom UI Screens (Registered to Engine Stack)
   -- =========================================================================
   if mod.content and mod.content.screens then
     
