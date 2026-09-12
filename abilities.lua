@@ -15,7 +15,7 @@ return function(mod)
   local function triggerAbilityPopup(text)
     if mod.options and mod.options:get("show_ability_popups") then
       mod.BATTLE_POPUP_TEXT = text
-      mod.BATTLE_POPUP_TIMER = 120 -- Display for approx 2 seconds at 60fps[cite: 55]
+      mod.BATTLE_POPUP_TIMER = 120 -- Display for approx 2 seconds at 60fps
     end
     if mod.log and mod.log.info then
       mod.log:info("Ability Triggered: " .. tostring(text))
@@ -24,6 +24,7 @@ return function(mod)
   mod.triggerAbilityPopup = triggerAbilityPopup
 
   local SPECIES_ABILITIES = {
+    -- GEN 1
     BULBASAUR  = { "OVERGROW", "CHLOROPHYLL" },
     IVYSAUR    = { "OVERGROW", "CHLOROPHYLL" },
     VENUSAUR   = { "OVERGROW", "CHLOROPHYLL" },
@@ -175,6 +176,7 @@ return function(mod)
     DRAGONITE  = { "INNER_FOCUS", "MULTISCALE" },
     MEWTWO     = { "PRESSURE", "UNNERVE" },
     MEW        = { "SYNCHRONIZE" },
+
     -- GEN 2
     CHIKORITA  = { "OVERGROW", "LEAF_GUARD" },
     BAYLEEF    = { "OVERGROW", "LEAF_GUARD" },
@@ -276,6 +278,7 @@ return function(mod)
     LUGIA      = { "PRESSURE", "MULTISCALE" },
     HO_OH      = { "PRESSURE", "REGENERATOR" },
     CELEBI     = { "NATURAL_CURE" },
+
     -- GEN 3
     TREECKO    = { "OVERGROW", "UNBURDEN" },
     GROVYLE    = { "OVERGROW", "UNBURDEN" },
@@ -818,7 +821,7 @@ return function(mod)
   end)
 
   -- =========================================================================
-  -- DAMAGE CALCULATION HOOK (Immunities, Offenses, Defenses, and Multipliers)
+  -- DAMAGE CALCULATION HOOK (Immunities, Offenses, Defenses, and Multipliers)[cite: 4, 9]
   -- =========================================================================
   mod.hooks:wrap("battle.damage", function(next, ctx)
     if not ctx or not ctx.move or not ctx.target or not ctx.user then return next(ctx) end
@@ -861,42 +864,53 @@ return function(mod)
     if not ignoreDefensiveAbilities then
       if hasAbility(defender, "WONDER_GUARD") and info and info.typeMult and info.typeMult <= 10 then
         triggerAbilityPopup(defender.name .. "'s WONDER GUARD avoided the attack!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if hasAbility(defender, "SOUNDPROOF") and (move.isSound or move.id == "HYPER_VOICE" or move.id == "SING" or move.id == "SCREAM") then
         triggerAbilityPopup(defender.name .. "'s SOUNDPROOF blocked the move!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if hasAbility(defender, "TELEPATHY") and ctx.isAllyAttacker then
         triggerAbilityPopup(defender.name .. "'s TELEPATHY dodged ally move!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if (hasAbility(attacker, "DAMP") or hasAbility(defender, "DAMP")) and (move.id == "EXPLOSION" or move.id == "SELFDESTRUCT") then
         triggerAbilityPopup("DAMP prevented the explosion!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if hasAbility(defender, "LEVITATE") and moveType == "GROUND" then
         triggerAbilityPopup(defender.name .. "'s LEVITATE!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if moveType == "WATER" then
         if hasAbility(defender, "WATER_ABSORB") or hasAbility(defender, "DRY_SKIN") or hasAbility(defender, "STORM_DRAIN") then
           triggerAbilityPopup(defender.name .. " absorbed Water!")
+          if defender.mon and defender.mon.heal then defender.mon:heal(math.floor((defender.mon.max_hp or 100) / 4)) end
+          if info then info.typeMult = 0 end
           return 0, info
         end
       end
       if moveType == "ELECTRIC" then
         if hasAbility(defender, "VOLT_ABSORB") or hasAbility(defender, "LIGHTNING_ROD") then
           triggerAbilityPopup(defender.name .. "'s Electric immunity!")
+          if defender.mon and defender.mon.heal then defender.mon:heal(math.floor((defender.mon.max_hp or 100) / 4)) end
+          if info then info.typeMult = 0 end
           return 0, info
         end
       end
       if hasAbility(defender, "FLASH_FIRE") and moveType == "FIRE" then
         triggerAbilityPopup(defender.name .. "'s FLASH FIRE!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if hasAbility(defender, "SAP_SIPPER") and moveType == "GRASS" then
         triggerAbilityPopup(defender.name .. "'s SAP SIPPER!")
+        if info then info.typeMult = 0 end
         return 0, info
       end
       if hasAbility(defender, "MAGIC_GUARD") and move.isIndirect then return 0, info end
@@ -985,7 +999,7 @@ return function(mod)
   end)
 
   -- =========================================================================
-  -- POST-DAMAGE & CONTACT HOOK (Side Effects Execution)
+  -- POST-DAMAGE & CONTACT HOOK (Side Effects Execution)[cite: 8, 9]
   -- =========================================================================
   mod.events:on("battle.damage_dealt", function(ev)
     if not ev or not ev.user or not ev.target or not ev.move then return end
@@ -1103,7 +1117,7 @@ return function(mod)
   end)
 
   -- =========================================================================
-  -- END OF TURN HOOK (Weather Healing/Damage, Speed Boost, Status Clears)
+  -- END OF TURN HOOK (Weather Healing/Damage, Speed Boost, Status Clears)[cite: 8, 9]
   -- =========================================================================
   mod.events:on("battle.turn_ended", function(ev)
     if not ev or not ev.battle then return end
