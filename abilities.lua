@@ -44,11 +44,8 @@ return function(mod)
     local species = (mon.species and tostring(mon.species):upper()) or "BULBASAUR"
     local pool = nil
 
-    if mod.content and mod.content.pokemon and mod.content.pokemon.get then
-      local rec = mod.content.pokemon:get(species)
-      if rec and rec.abilities and #rec.abilities > 0 then
-        pool = rec.abilities
-      end
+    if mod.CUSTOM_ABILITIES and mod.CUSTOM_ABILITIES[species] then
+      pool = mod.CUSTOM_ABILITIES[species]
     end
 
     if not pool then
