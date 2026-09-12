@@ -8,43 +8,56 @@ return function(mod)
     error('gen1recomp modding API not initialized!')
   end
 
-  local function loadGen(name)
-    if mod and mod.path and type(mod.path) == "string" then
-      local pattern = mod.path .. "/?.lua;" .. mod.path .. "/?/init.lua"
-      if not package.path:find(pattern, 1, true) then
-        package.path = pattern .. ";" .. package.path
-      end
+  local function normalizePokemonData(data)
+    if not data or type(data) ~= "table" then return data end
+
+    local tList = data.types or data.type
+    if not tList and (data.type1 or data.type2) then
+      tList = {}
+      if data.type1 then table.insert(tList, data.type1) end
+      if data.type2 then table.insert(tList, data.type2) end
     end
 
-    local status, fn = pcall(require, name)
-    if not (status and type(fn) == "function") then
-      local pathsToTry = {
-        name .. ".lua",
-        name
-      }
-      if mod and mod.path then
-        table.insert(pathsToTry, 1, mod.path .. "/" .. name .. ".lua")
-        table.insert(pathsToTry, 2, mod.path .. "/" .. name)
-      end
-      for _, path in ipairs(pathsToTry) do
-        local loaded, err = loadfile(path)
-        if loaded and type(loaded) == "function" then
-          status = true
-          fn = loaded
-          break
+    if tList then
+      if type(tList) == "string" then tList = { tList } end
+      data.types = tList
+      data.type = tList
+      if tList[1] then data.type1 = tList[1] end
+      if tList[2] then data.type2 = tList[2] else data.type2 = tList[1] end
+    end
+
+    local lset = data.learnset or data.moves or data.levelUpMoves or data.level_up_moves
+    if lset and type(lset) == "table" then
+      local normalizedLset = {}
+      for i, entry in ipairs(lset) do
+        if type(entry) == "table" then
+          local lvl = entry.level or entry.lvl or entry[1] or 1
+          local mv = entry.move or entry.id or entry[2]
+          if mv then
+            table.insert(normalizedLset, {
+              level = lvl,
+              move = mv,
+              lvl = lvl,
+              id = mv,
+              [1] = lvl,
+              [2] = mv
+            })
+          end
         end
       end
+      data.learnset = normalizedLset
+      data.moves = normalizedLset
+      data.levelUpMoves = normalizedLset
+      data.level_up_moves = normalizedLset
     end
 
-    if status and type(fn) == "function" then
-      local runStatus, err = pcall(fn, mod)
-      if runStatus then
-        mod.log:info("Kanto Revitalised: Successfully applied " .. name)
-      else
-        mod.log:error("Kanto Revitalised: Error executing " .. name .. ": " .. tostring(err))
-      end
-    else
-      mod.log:error("Kanto Revitalised: Failed to load " .. name .. ": " .. tostring(fn))
+    return data
+  end
+
+
+  local function loadGen(name)
+    if mod.loadModule then
+      return mod.loadModule(name)
     end
   end
 
