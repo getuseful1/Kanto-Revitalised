@@ -261,20 +261,95 @@ return function(mod)
     end
   end)
 
-  -- Party Menu "GIVE ITEM" / "TAKE ITEM" Submenu Option
+  -- Persistent set & get helpers for held items
+  local function setHeldItem(mon, itemId)
+    if not mon then return end
+    if itemId == "NONE" or itemId == "" then itemId = nil end
+    mon.heldItem = itemId
+    mon.held_item = itemId
+    mon.item = itemId
+  end
+
+  -- Party Menu "HELD ITEM" Submenu Option with GIVE & TAKE sub-menu
   mod.hooks:wrap("ui.party.submenu", function(next, game, items, mon, ctx)
     items = next(game, items, mon, ctx) or items
     if not mon then return items end
 
-    local held = getHeldItem(mon) or "NONE"
+    local held = getHeldItem(mon)
+    local heldLabel = (held and held ~= "" and held:upper() ~= "NONE") and ("HELD ITEM: " .. held:upper()) or "HELD ITEM: NONE"
 
     local heldItemOption = {
       label = "HELD ITEM",
       onSelect = function()
-        if mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
-          mod.ui.TextBox.show(game, {
-            title = tostring(mon.name or "Pokémon") .. "'s Item",
-            text = "Held Item: " .. held
+        local currentGame = game or (ctx and ctx.game)
+        local currentHeld = getHeldItem(mon)
+
+        local options = {
+          {
+            label = "GIVE",
+            onSelect = function()
+              if mod.ui and mod.ui.ItemPicker and mod.ui.ItemPicker.show then
+                mod.ui.ItemPicker.show(currentGame, {
+                  title = "Give Item",
+                  onSelect = function(selectedItem)
+                    if selectedItem then
+                      setHeldItem(mon, selectedItem)
+                      if mod.save and mod.save.set then
+                        mod.save:set("heldItem_" .. tostring(mon.id or mon.name), selectedItem)
+                      end
+                      if mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
+                        mod.ui.TextBox.show(currentGame, {
+                          title = "Held Item",
+                          text = "Gave " .. tostring(selectedItem) .. " to " .. tostring(mon.name or "Pokémon") .. "."
+                        })
+                      end
+                    end
+                  end
+                })
+              elseif mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
+                mod.ui.TextBox.show(currentGame, {
+                  title = "Held Item",
+                  text = "Item attached: " .. tostring(currentHeld or "NONE")
+                })
+              end
+            end
+          },
+          {
+            label = "TAKE",
+            onSelect = function()
+              local itemToTake = getHeldItem(mon)
+              if itemToTake and itemToTake ~= "" and itemToTake:upper() ~= "NONE" then
+                setHeldItem(mon, nil)
+                if mod.save and mod.save.set then
+                  mod.save:set("heldItem_" .. tostring(mon.id or mon.name), nil)
+                end
+                if mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
+                  mod.ui.TextBox.show(currentGame, {
+                    title = "Held Item",
+                    text = "Took " .. tostring(itemToTake) .. " from " .. tostring(mon.name or "Pokémon") .. "."
+                  })
+                end
+              else
+                if mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
+                  mod.ui.TextBox.show(currentGame, {
+                    title = "Held Item",
+                    text = tostring(mon.name or "Pokémon") .. " is not holding anything!"
+                  })
+                end
+              end
+            end
+          }
+        }
+
+        if mod.ui and mod.ui.Menu and mod.ui.Menu.show then
+          mod.ui.Menu.show(currentGame, {
+            title = heldLabel,
+            items = options
+          })
+        elseif mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
+          mod.ui.TextBox.show(currentGame, {
+            title = heldLabel,
+            text = "Holding: " .. tostring(currentHeld or "NONE")
           })
         end
       end

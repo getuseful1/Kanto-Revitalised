@@ -73,10 +73,40 @@ return function(mod)
     return monAb == abId:upper()
   end
 
+  local ABILITY_DESCRIPTIONS = {
+    OVERGROW = "Boosts Grass-type moves when HP is low.",
+    CHLOROPHYLL = "Boosts Speed in sunshine.",
+    BLAZE = "Boosts Fire-type moves when HP is low.",
+    SOLAR_POWER = "Boosts Sp. Atk in sun, but loses HP.",
+    TORRENT = "Boosts Water-type moves when HP is low.",
+    RAIN_DISH = "Gradually regains HP in rain.",
+    STATIC = "May paralyze attackers on contact.",
+    LIGHTNING_ROD = "Draws in Electric moves to raise Sp. Atk.",
+    CURSED_BODY = "May disable a move used on the Pokémon.",
+    LEVITATE = "Gives immunity to Ground-type moves.",
+    INNER_FOCUS = "Protects the Pokémon from flinching.",
+    MULTISCALE = "Reduces damage taken at full HP.",
+    PRESSURE = "Raises opposing Pokémon's PP usage.",
+    UNNERVE = "Makes opposing Pokémon unable to eat Berries.",
+    SYNCHRONIZE = "Passes poison, paralyze, or burn to the foe.",
+    ADAPTABILITY = "Powers up moves of the same type.",
+    INTIMIDATE = "Lowers opposing Pokémon's Attack stat.",
+    CLEAR_BODY = "Prevents stats from being lowered.",
+    HYPER_CUTTER = "Prevents Attack stat from being lowered.",
+    SHEER_FORCE = "Removes additional effects to increase move power.",
+    TECHNICIAN = "Powers up weaker moves.",
+    SPEED_BOOST = "Its Speed stat is gradually boosted.",
+    AIR_LOCK = "Eliminates the effects of weather."
+  }
+
   -- Export API for ui-enhancements
+  mod.getMonAbility = getMonAbility
+  mod.hasAbility = hasAbility
+  mod.ABILITY_DESCRIPTIONS = ABILITY_DESCRIPTIONS
   mod.exports = {
     getMonAbility = getMonAbility,
-    hasAbility = hasAbility
+    hasAbility = hasAbility,
+    ABILITY_DESCRIPTIONS = ABILITY_DESCRIPTIONS
   }
 
   -- Battle Start & Weather Init

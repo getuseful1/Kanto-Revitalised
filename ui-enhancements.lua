@@ -43,21 +43,21 @@ return function(mod)
     end
 
     if mon then
-      local ability = (mod.getMonAbility and mod.getMonAbility(mon)) or "NONE"
-      local desc = (mod.ABILITY_DESCRIPTIONS and mod.ABILITY_DESCRIPTIONS[ability]) or "No description."
+      local rawAbility = mod.getMonAbility and mod.getMonAbility(mon)
+      local hasAbilityVal = rawAbility and rawAbility ~= "" and rawAbility:upper() ~= "NONE" and rawAbility:upper() ~= "N/A"
+      local abilityName = hasAbilityVal and rawAbility:upper() or "N/A"
+      local desc = hasAbilityVal and ((mod.ABILITY_DESCRIPTIONS and mod.ABILITY_DESCRIPTIONS[abilityName]) or ("Special Ability: " .. abilityName)) or "This Pokémon has no special ability."
+
+      local abilityLabel = hasAbilityVal and ("ABILITY: " .. abilityName) or "ABILITY: N/A"
 
       local abilityItem = {
-        label = "ABILITY",
+        label = abilityLabel,
         onSelect = function()
           if mod.ui and mod.ui.TextBox and mod.ui.TextBox.show then
-            mod.ui.TextBox.show(game, {
-              title = tostring(mon.name or "Pokémon") .. " - " .. ability,
-              text = ability .. "\n" .. desc
+            mod.ui.TextBox.show(game or (ctx and ctx.game), {
+              title = tostring(mon.name or "Pokémon") .. "'s Ability",
+              text = abilityName .. "\n\n" .. desc
             })
-          elseif game and game.showText then
-            game:showText(tostring(mon.name or "Pokémon") .. " Ability: " .. ability .. "\n" .. desc)
-          else
-            mod.log:info("Pokémon: %s | Ability: %s", tostring(mon.name), ability)
           end
         end
       }
