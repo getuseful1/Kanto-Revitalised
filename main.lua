@@ -17,6 +17,20 @@ return function(mod)
   mod.CUSTOM_ABILITIES = mod.CUSTOM_ABILITIES or {}
   mod.MOVE_DESCRIPTIONS = mod.MOVE_DESCRIPTIONS or {}
 
+  -- 1. PREVENT DANGLING REFERENCE CASCADE
+  -- Register modern types and a dummy move effect to pass schema validation[cite: 1, 4, 9].
+  if mod.content then
+    if mod.content.type_chart then
+      pcall(function() mod.content.type_chart:register("DARK", { name = "DARK" }) end)
+      pcall(function() mod.content.type_chart:register("STEEL", { name = "STEEL" }) end)
+      pcall(function() mod.content.type_chart:register("FAIRY", { name = "FAIRY" }) end)
+    end
+    if mod.content.move_effects then
+      -- We must register a blank effect so our moves don't reference a dangling ID[cite: 9]
+      pcall(function() mod.content.move_effects:register("MOD_DUMMY_EFFECT", {}) end)
+    end
+  end
+
   -- Determine Generation Routing[cite: 1, 4]
   local isGen2 = false
   pcall(function() if mod.content.pokemon:get("BULBASAUR").levelMoves then isGen2 = true end end)
@@ -92,6 +106,13 @@ return function(mod)
         out[k] = v
       end
     end
+    
+    -- The 'effect' field is strictly REQUIRED by the Gen1Recomp schema[cite: 9].
+    -- Because it was missing, all 212 moves failed validation and were dropped!
+    if not out.effect then
+      out.effect = "MOD_DUMMY_EFFECT"
+    end
+    
     return out
   end
 
