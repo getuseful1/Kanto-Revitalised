@@ -13,12 +13,9 @@ return function(mod)
     { key = "sprite_source", type = "choice", label = "POKEMON SPRITE SOURCE", options = { { label = "Mod Sprites", value = "mod" }, { label = "ROM Sprites", value = "rom" } }, default = "mod" }
   })
 
-  -- Global tables to safely store custom data outside the strict engine schema[cite: 1, 4]
   mod.CUSTOM_ABILITIES = mod.CUSTOM_ABILITIES or {}
   mod.MOVE_DESCRIPTIONS = mod.MOVE_DESCRIPTIONS or {}
 
-  -- 1. PREVENT DANGLING REFERENCE CASCADE
-  -- Register modern types and a dummy move effect to pass schema validation[cite: 1, 4, 9].
   if mod.content then
     if mod.content.type_chart then
       pcall(function() mod.content.type_chart:register("DARK", { name = "DARK" }) end)
@@ -26,16 +23,13 @@ return function(mod)
       pcall(function() mod.content.type_chart:register("FAIRY", { name = "FAIRY" }) end)
     end
     if mod.content.move_effects then
-      -- We must register a blank effect so our moves don't reference a dangling ID[cite: 9]
       pcall(function() mod.content.move_effects:register("MOD_DUMMY_EFFECT", {}) end)
     end
   end
 
-  -- Determine Generation Routing[cite: 1, 4]
   local isGen2 = false
   pcall(function() if mod.content.pokemon:get("BULBASAUR").levelMoves then isGen2 = true end end)
 
-  -- POKEMON SCHEMA NORMALIZER
   local function normalizePokemonData(id, data)
     if type(data) ~= "table" then return data end
     local out = {}
@@ -70,7 +64,7 @@ return function(mod)
     if rawLearnset and type(rawLearnset) == "table" then
       local cleanLearnset = {}
       local lvl1Moves = data.level1Moves or {}
-      
+
       for _, entry in pairs(rawLearnset) do
         if type(entry) == "table" then
           local lvl = entry.level or entry.lvl or 1
@@ -84,7 +78,7 @@ return function(mod)
           end
         end
       end
-      
+
       if isGen2 then
         out.levelMoves = cleanLearnset
       else
@@ -95,7 +89,6 @@ return function(mod)
     return out
   end
 
--- MOVES SCHEMA NORMALIZER
   local function normalizeMoveData(id, data)
     if type(data) ~= "table" then return data end
     local out = {}
@@ -103,36 +96,16 @@ return function(mod)
       if k == "description" then
         mod.MOVE_DESCRIPTIONS[id] = v
       elseif k == "category" then
-        -- The schema strictly requires lowercase "physical", "special", or "status"
-        -- This converts your uppercase definitions into valid schema shapes automatically.
-        if type(v) == "string" then
-          out[k] = string.lower(v)
-        else
-          out[k] = v
-        end
+        if type(v) == "string" then out[k] = string.lower(v) else out[k] = v end
       elseif k ~= "effect_data" then
         out[k] = v
       end
     end
-    
-    -- The 'effect' field is strictly REQUIRED by the Gen1Recomp schema.
-    if not out.effect then
-      out.effect = "MOD_DUMMY_EFFECT"
-    end
-    
-    return out
-  end
-    
-    -- The 'effect' field is strictly REQUIRED by the Gen1Recomp schema[cite: 9].
-    -- Because it was missing, all 212 moves failed validation and were dropped!
-    if not out.effect then
-      out.effect = "MOD_DUMMY_EFFECT"
-    end
-    
+
+    if not out.effect then out.effect = "MOD_DUMMY_EFFECT" end
     return out
   end
 
-  -- INTERCEPT REGISTRIES
   if mod.content then
     if mod.content.pokemon then
       local origPokePatch = mod.content.pokemon.patch
@@ -157,7 +130,6 @@ return function(mod)
     end
   end
 
-  -- SAFE LOADER
   local function loadModule(name)
     local status, fn = pcall(require, name)
     if status and type(fn) == "function" then
@@ -169,7 +141,7 @@ return function(mod)
     local chunk, loadErr = loadfile(path)
     if chunk then
       local ok, inner = pcall(chunk)
-      if ok and type(inner) == "function" then 
+      if ok and type(inner) == "function" then
         local ok2, err2 = pcall(inner, mod)
         if not ok2 then mod.log:error("Error in " .. path .. ": " .. tostring(err2)) end
       end
@@ -179,7 +151,6 @@ return function(mod)
   end
   mod.loadModule = loadModule
 
-  -- Load Custom Types & Effectiveness BEFORE Moves/Pokemon[cite: 4, 9]
   loadModule("modern-types")
 
   if mod.options:get("modern_battle_fixes") then
